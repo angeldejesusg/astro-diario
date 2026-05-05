@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -7,82 +6,64 @@
 <title>Astro Diario</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #080710;
-  --border: rgba(180,150,255,0.12);
-  --gold: #d4a843;
-  --gold2: #f0c96a;
-  --purple: #9b72ef;
-  --purple2: #c4a5ff;
-  --text: #e8e0f0;
-  --muted: #7a7090;
-  --glow-purple: rgba(155,114,239,0.18);
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 18px;
-  line-height: 1.7;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-#cosmos { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-.wrap { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 60px 24px 100px; }
-.masthead { text-align: center; margin-bottom: 56px; animation: rise 1.2s cubic-bezier(.16,1,.3,1) both; }
-@keyframes rise { from { opacity:0; transform:translateY(32px); } to { opacity:1; transform:translateY(0); } }
-.sigil { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; margin-bottom: 20px; position: relative; }
-.sigil svg { width: 72px; height: 72px; animation: rotateSigil 30s linear infinite; filter: drop-shadow(0 0 12px rgba(155,114,239,0.6)); }
-@keyframes rotateSigil { to { transform: rotate(360deg); } }
-.sigil-moon { position: absolute; font-size: 1.8rem; animation: rotateSigil 30s linear infinite reverse; filter: drop-shadow(0 0 8px var(--gold)); }
-h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 900; font-style: italic; line-height: 1; letter-spacing: -0.02em; background: linear-gradient(160deg, var(--gold2) 0%, var(--gold) 40%, var(--purple2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }
-.tagline { color: var(--muted); font-style: italic; font-size: 1rem; letter-spacing: 0.06em; }
-.ornament { display: flex; align-items: center; gap: 12px; margin: 24px auto 0; width: fit-content; opacity: 0.4; }
-.ornament-line { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, var(--purple)); }
-.ornament-line.r { background: linear-gradient(90deg, var(--purple), transparent); }
-.ornament span { color: var(--purple2); font-size: 0.7rem; letter-spacing: 0.3em; }
-.panel { background: rgba(15,14,26,0.7); border: 1px solid var(--border); border-radius: 20px; padding: 36px; backdrop-filter: blur(16px); animation: rise 1s 0.15s cubic-bezier(.16,1,.3,1) both; }
-.panel-label { font-family: 'Playfair Display', serif; font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--purple2); opacity: 0.7; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; }
-.panel-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
-.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field.span2 { grid-column: 1 / -1; }
-.field label { font-family: 'Playfair Display', serif; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-.field input, .field select { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-family: 'EB Garamond', serif; font-size: 1rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; -webkit-appearance: none; }
-.field input:focus, .field select:focus { border-color: rgba(155,114,239,0.5); box-shadow: 0 0 0 3px var(--glow-purple); }
-.field input::placeholder { color: rgba(122,112,144,0.5); font-style: italic; }
-.field select option { background: #0f0e1a; }
-.btn-main { width: 100%; margin-top: 24px; padding: 16px 24px; background: linear-gradient(135deg, #9b72ef 0%, #6a42c2 100%); border: none; border-radius: 12px; color: #fff; font-family: 'Playfair Display', serif; font-size: 1.05rem; font-style: italic; letter-spacing: 0.04em; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s; }
-.btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(155,114,239,0.4); }
-.btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
-.loader { display: none; text-align: center; padding: 48px 24px; }
-.loader.on { display: block; }
-.loader-orb { width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid rgba(155,114,239,0.2); border-top-color: var(--purple); border-right-color: var(--gold); margin: 0 auto 20px; animation: spin 1.6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loader p { color: var(--muted); font-style: italic; animation: breathe 2.4s ease-in-out infinite; }
-@keyframes breathe { 0%,100%{opacity:.5} 50%{opacity:1} }
-.result { display: none; animation: rise 0.7s cubic-bezier(.16,1,.3,1) both; }
-.result.on { display: block; }
-.result-head { background: linear-gradient(135deg, rgba(155,114,239,0.1), rgba(212,168,67,0.06)); border: 1px solid var(--border); border-radius: 16px 16px 0 0; padding: 24px 32px; display: flex; align-items: center; gap: 18px; border-bottom: none; }
-.result-phase { font-size: 2.4rem; filter: drop-shadow(0 0 10px var(--gold)); flex-shrink: 0; }
-.result-info h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; color: var(--gold2); font-weight: 400; line-height: 1.2; }
-.result-info .fecha { color: var(--muted); font-size: 0.88rem; margin-top: 3px; }
-.result-body { background: rgba(15,14,26,0.7); border: 1px solid var(--border); border-radius: 0 0 16px 16px; padding: 32px; backdrop-filter: blur(16px); line-height: 1.8; font-size: 1.02rem; }
-.result-body h3 { font-family: 'Playfair Display', serif; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--purple2); margin: 28px 0 10px; opacity: 0.85; }
-.result-body h3:first-child { margin-top: 0; }
-.result-body p { color: rgba(232,224,240,0.85); margin-bottom: 6px; }
-.result-body ul { list-style: none; margin-bottom: 8px; }
-.result-body li { color: rgba(232,224,240,0.82); padding-left: 20px; position: relative; margin-bottom: 4px; }
-.result-body li::before { content: '◆'; position: absolute; left: 0; color: var(--gold); font-size: 0.5rem; top: 9px; }
-.result-body strong { color: var(--gold2); font-weight: 500; }
-.result-body em { color: var(--purple2); font-style: italic; }
-.frase-dia { margin-top: 28px; padding: 18px 22px; background: linear-gradient(135deg, rgba(155,114,239,0.08), rgba(212,168,67,0.05)); border-left: 2px solid var(--gold); border-radius: 0 10px 10px 0; font-style: italic; font-size: 1.1rem; color: var(--gold2); }
-.error { display: none; margin-top: 16px; padding: 14px 18px; background: rgba(220,50,50,0.08); border: 1px solid rgba(220,80,80,0.25); border-radius: 10px; color: #e08888; font-size: 0.92rem; line-height: 1.5; }
-.error.on { display: block; }
-footer { text-align: center; margin-top: 60px; color: var(--muted); font-size: 0.82rem; font-style: italic; opacity: 0.5; }
-@media (max-width: 500px) { .fields { grid-template-columns: 1fr; } .field.span2 { grid-column: 1; } .panel { padding: 22px 18px; } .result-body { padding: 22px 18px; } .result-head { padding: 18px; } }
+:root{--bg:#080710;--border:rgba(180,150,255,0.12);--gold:#d4a843;--gold2:#f0c96a;--purple:#9b72ef;--purple2:#c4a5ff;--text:#e8e0f0;--muted:#7a7090;--glow-purple:rgba(155,114,239,0.18)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:18px;line-height:1.7;min-height:100vh;overflow-x:hidden}
+#cosmos{position:fixed;inset:0;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:60px 24px 100px}
+.masthead{text-align:center;margin-bottom:56px;animation:rise 1.2s cubic-bezier(.16,1,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+.sigil{display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;margin-bottom:20px;position:relative}
+.sigil svg{width:72px;height:72px;animation:rotateSigil 30s linear infinite;filter:drop-shadow(0 0 12px rgba(155,114,239,0.6))}
+@keyframes rotateSigil{to{transform:rotate(360deg)}}
+.sigil-moon{position:absolute;font-size:1.8rem;animation:rotateSigil 30s linear infinite reverse;filter:drop-shadow(0 0 8px var(--gold))}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.4rem);font-weight:900;font-style:italic;line-height:1;letter-spacing:-0.02em;background:linear-gradient(160deg,var(--gold2) 0%,var(--gold) 40%,var(--purple2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+.tagline{color:var(--muted);font-style:italic;font-size:1rem;letter-spacing:0.06em}
+.ornament{display:flex;align-items:center;gap:12px;margin:24px auto 0;width:fit-content;opacity:0.4}
+.ornament-line{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--purple))}
+.ornament-line.r{background:linear-gradient(90deg,var(--purple),transparent)}
+.ornament span{color:var(--purple2);font-size:0.7rem;letter-spacing:0.3em}
+.panel{background:rgba(15,14,26,0.7);border:1px solid var(--border);border-radius:20px;padding:36px;backdrop-filter:blur(16px);animation:rise 1s 0.15s cubic-bezier(.16,1,.3,1) both}
+.panel-label{font-family:'Playfair Display',serif;font-size:0.72rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--purple2);opacity:0.7;margin-bottom:22px;display:flex;align-items:center;gap:10px}
+.panel-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.span2{grid-column:1/-1}
+.field label{font-family:'Playfair Display',serif;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;-webkit-appearance:none}
+.field input:focus,.field select:focus{border-color:rgba(155,114,239,0.5);box-shadow:0 0 0 3px var(--glow-purple)}
+.field input::placeholder{color:rgba(122,112,144,0.5);font-style:italic}
+.field select option{background:#0f0e1a}
+.btn-main{width:100%;margin-top:24px;padding:16px 24px;background:linear-gradient(135deg,#9b72ef 0%,#6a42c2 100%);border:none;border-radius:12px;color:#fff;font-family:'Playfair Display',serif;font-size:1.05rem;font-style:italic;letter-spacing:0.04em;cursor:pointer;transition:transform 0.15s,box-shadow 0.2s,opacity 0.2s}
+.btn-main:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 40px rgba(155,114,239,0.4)}
+.btn-main:disabled{opacity:0.5;cursor:not-allowed}
+.loader{display:none;text-align:center;padding:48px 24px}
+.loader.on{display:block}
+.loader-orb{width:56px;height:56px;border-radius:50%;border:1.5px solid rgba(155,114,239,0.2);border-top-color:var(--purple);border-right-color:var(--gold);margin:0 auto 20px;animation:spin 1.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader p{color:var(--muted);font-style:italic;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
+.result{display:none;animation:rise 0.7s cubic-bezier(.16,1,.3,1) both}
+.result.on{display:block}
+.result-head{background:linear-gradient(135deg,rgba(155,114,239,0.1),rgba(212,168,67,0.06));border:1px solid var(--border);border-radius:16px 16px 0 0;padding:24px 32px;display:flex;align-items:center;gap:18px;border-bottom:none}
+.result-phase{font-size:2.4rem;filter:drop-shadow(0 0 10px var(--gold));flex-shrink:0}
+.result-info h2{font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;color:var(--gold2);font-weight:400;line-height:1.2}
+.result-info .fecha{color:var(--muted);font-size:0.88rem;margin-top:3px}
+.result-body{background:rgba(15,14,26,0.7);border:1px solid var(--border);border-radius:0 0 16px 16px;padding:32px;backdrop-filter:blur(16px);line-height:1.8;font-size:1.02rem}
+.result-body h3{font-family:'Playfair Display',serif;font-size:0.78rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple2);margin:28px 0 10px;opacity:0.85}
+.result-body h3:first-child{margin-top:0}
+.result-body p{color:rgba(232,224,240,0.85);margin-bottom:6px}
+.result-body ul{list-style:none;margin-bottom:8px}
+.result-body li{color:rgba(232,224,240,0.82);padding-left:20px;position:relative;margin-bottom:4px}
+.result-body li::before{content:'◆';position:absolute;left:0;color:var(--gold);font-size:0.5rem;top:9px}
+.result-body strong{color:var(--gold2);font-weight:500}
+.result-body em{color:var(--purple2);font-style:italic}
+.frase-dia{margin-top:28px;padding:18px 22px;background:linear-gradient(135deg,rgba(155,114,239,0.08),rgba(212,168,67,0.05));border-left:2px solid var(--gold);border-radius:0 10px 10px 0;font-style:italic;font-size:1.1rem;color:var(--gold2)}
+.error{display:none;margin-top:16px;padding:14px 18px;background:rgba(220,50,50,0.08);border:1px solid rgba(220,80,80,0.25);border-radius:10px;color:#e08888;font-size:0.92rem;line-height:1.5}
+.error.on{display:block}
+footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;font-style:italic;opacity:0.5}
+@media(max-width:500px){.fields{grid-template-columns:1fr}.field.span2{grid-column:1}.panel{padding:22px 18px}.result-body{padding:22px 18px}.result-head{padding:18px}}
 </style>
 </head>
 <body>
@@ -177,192 +158,51 @@ footer { text-align: center; margin-top: 60px; color: var(--muted); font-size: 0
 </div>
 
 <script>
-// Canvas cosmos
-(function () {
-  var c = document.getElementById('cosmos');
-  var ctx = c.getContext('2d');
-  var W, H, stars = [], nebulae = [];
-  function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
-  function init() {
-    resize(); stars = [];
-    for (var i = 0; i < 200; i++) {
-      stars.push({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.4+0.2, o: Math.random()*0.5+0.1, s: Math.random()*0.008+0.002, p: Math.random()*Math.PI*2 });
-    }
-    nebulae = [
-      { x: W*0.15, y: H*0.2, r: 250, c: 'rgba(155,114,239,0.06)' },
-      { x: W*0.85, y: H*0.7, r: 200, c: 'rgba(212,168,67,0.05)' },
-      { x: W*0.5,  y: H*0.5, r: 300, c: 'rgba(100,60,180,0.04)' }
-    ];
-  }
-  function draw(t) {
-    ctx.clearRect(0,0,W,H);
-    for (var i = 0; i < nebulae.length; i++) {
-      var n = nebulae[i];
-      var g = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
-      g.addColorStop(0, n.c); g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
-    }
-    for (var j = 0; j < stars.length; j++) {
-      var s = stars[j];
-      var o = s.o * (0.6 + 0.4 * Math.sin(t * 0.001 * s.s * 1000 + s.p));
-      ctx.save(); ctx.globalAlpha = o; ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill(); ctx.restore();
-    }
-    requestAnimationFrame(draw);
-  }
-  window.addEventListener('resize', init);
-  init();
-  requestAnimationFrame(draw);
-})();
+(function(){var c=document.getElementById('cosmos'),ctx=c.getContext('2d'),W,H,stars=[],nebulae=[];function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}function init(){resize();stars=[];for(var i=0;i<200;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+0.2,o:Math.random()*0.5+0.1,s:Math.random()*0.008+0.002,p:Math.random()*Math.PI*2});nebulae=[{x:W*0.15,y:H*0.2,r:250,c:'rgba(155,114,239,0.06)'},{x:W*0.85,y:H*0.7,r:200,c:'rgba(212,168,67,0.05)'},{x:W*0.5,y:H*0.5,r:300,c:'rgba(100,60,180,0.04)'}]}function draw(t){ctx.clearRect(0,0,W,H);for(var i=0;i<nebulae.length;i++){var n=nebulae[i],g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);g.addColorStop(0,n.c);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fill()}for(var j=0;j<stars.length;j++){var s=stars[j],o=s.o*(0.6+0.4*Math.sin(t*0.001*s.s*1000+s.p));ctx.save();ctx.globalAlpha=o;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();ctx.restore()}requestAnimationFrame(draw)}window.addEventListener('resize',init);init();requestAnimationFrame(draw)})();
 
-function moonPhase() {
-  var known = new Date('2000-01-06T18:14:00Z');
-  var d = (Date.now() - known.getTime()) / 86400000;
-  var p = ((d % 29.53) + 29.53) % 29.53;
-  if (p < 1.85)  return { e: '🌑', n: 'Luna Nueva' };
-  if (p < 7.38)  return { e: '🌒', n: 'Creciente' };
-  if (p < 9.22)  return { e: '🌓', n: 'Cuarto Creciente' };
-  if (p < 14.77) return { e: '🌔', n: 'Gibosa Creciente' };
-  if (p < 16.61) return { e: '🌕', n: 'Luna Llena' };
-  if (p < 22.15) return { e: '🌖', n: 'Gibosa Menguante' };
-  if (p < 23.99) return { e: '🌗', n: 'Cuarto Menguante' };
-  return { e: '🌘', n: 'Menguante' };
-}
+function moonPhase(){var known=new Date('2000-01-06T18:14:00Z'),d=(Date.now()-known.getTime())/86400000,p=((d%29.53)+29.53)%29.53;if(p<1.85)return{e:'🌑',n:'Luna Nueva'};if(p<7.38)return{e:'🌒',n:'Creciente'};if(p<9.22)return{e:'🌓',n:'Cuarto Creciente'};if(p<14.77)return{e:'🌔',n:'Gibosa Creciente'};if(p<16.61)return{e:'🌕',n:'Luna Llena'};if(p<22.15)return{e:'🌖',n:'Gibosa Menguante'};if(p<23.99)return{e:'🌗',n:'Cuarto Menguante'};return{e:'🌘',n:'Menguante'}}
+function todayStr(){return new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function mdToHtml(t){var lines=t.split('\n'),html='',inList=false;for(var i=0;i<lines.length;i++){var line=lines[i];if(/^###?\s/.test(line)){if(inList){html+='</ul>';inList=false}html+='<h3>'+line.replace(/^###?\s/,'')+'</h3>'}else if(/^[-•✦◆]\s/.test(line)){if(!inList){html+='<ul>';inList=true}html+='<li>'+line.replace(/^[-•✦◆]\s/,'').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')+'</li>'}else if(line.trim()===''){if(inList){html+='</ul>';inList=false}}else{if(inList){html+='</ul>';inList=false}html+='<p>'+line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')+'</p>'}}if(inList)html+='</ul>';return html}
 
-function todayStr() {
-  return new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-}
-
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-function mdToHtml(t) {
-  var lines = t.split('\n');
-  var html = '';
-  var inList = false;
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i];
-    if (/^###?\s/.test(line)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += '<h3>' + line.replace(/^###?\s/, '') + '</h3>';
-    } else if (/^[-•✦◆]\s/.test(line)) {
-      if (!inList) { html += '<ul>'; inList = true; }
-      html += '<li>' + line.replace(/^[-•✦◆]\s/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>') + '</li>';
-    } else if (line.trim() === '') {
-      if (inList) { html += '</ul>'; inList = false; }
-    } else {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += '<p>' + line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>') + '</p>';
-    }
-  }
-  if (inList) html += '</ul>';
-  return html;
-}
-
-var OR_KEY = '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';
-var OR_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-
-function getReading(prompt) {
-  return fetch(OR_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + OR_KEY,
-      'HTTP-Referer': 'https://angeldejesusg.github.io',
-      'X-Title': 'Astro Diario'
-    },
-    body: JSON.stringify({
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 900
-    })
-  }).then(function (res) {
-    if (!res.ok) {
-      return res.json().catch(function () { return {}; }).then(function (e) {
-        throw new Error(e.error && e.error.message ? e.error.message : 'Error ' + res.status);
-      });
-    }
-    return res.json();
-  }).then(function (data) {
-    var text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-    if (!text) throw new Error('Respuesta vacía. Intenta de nuevo.');
-    return text;
-  });
-}
-
-document.getElementById('btnConsultar').addEventListener('click', function () {
-  var nombre       = document.getElementById('nombre').value.trim() || 'Consultante';
-  var fechaNac     = document.getElementById('fechaNac').value;
-  var horaNac      = document.getElementById('horaNac').value;
-  var ciudadNac    = document.getElementById('ciudadNac').value.trim();
-  var ciudadActual = document.getElementById('ciudadActual').value.trim();
-  var enfoqueEl    = document.getElementById('enfoque');
-  var enfoque      = enfoqueEl.options[enfoqueEl.selectedIndex].text;
-  var errorEl      = document.getElementById('errorMsg');
-
+document.getElementById('btnConsultar').addEventListener('click',function(){
+  var nombre=document.getElementById('nombre').value.trim()||'Consultante';
+  var fechaNac=document.getElementById('fechaNac').value;
+  var horaNac=document.getElementById('horaNac').value;
+  var ciudadNac=document.getElementById('ciudadNac').value.trim();
+  var ciudadActual=document.getElementById('ciudadActual').value.trim();
+  var enfoqueEl=document.getElementById('enfoque');
+  var enfoque=enfoqueEl.options[enfoqueEl.selectedIndex].text;
+  var errorEl=document.getElementById('errorMsg');
   errorEl.classList.remove('on');
-
-  if (!fechaNac) {
-    errorEl.textContent = 'Por favor ingresa tu fecha de nacimiento.';
-    errorEl.classList.add('on');
-    return;
-  }
-
-  var moon  = moonPhase();
-  var today = todayStr();
-
-  document.getElementById('btnConsultar').disabled = true;
+  if(!fechaNac){errorEl.textContent='Por favor ingresa tu fecha de nacimiento.';errorEl.classList.add('on');return}
+  var moon=moonPhase(),today=todayStr();
+  document.getElementById('btnConsultar').disabled=true;
   document.getElementById('loader').classList.add('on');
   document.getElementById('result').classList.remove('on');
-
-  var prompt = 'Eres un astrólogo experto en astrología occidental tropical. Hoy es ' + today + '.\n\n' +
-    'Datos:\n' +
-    '- Nombre: ' + nombre + '\n' +
-    '- Fecha de nacimiento: ' + fechaNac + '\n' +
-    '- Hora de nacimiento: ' + (horaNac || 'desconocida') + '\n' +
-    '- Ciudad de nacimiento: ' + (ciudadNac || 'no especificada') + '\n' +
-    '- Ciudad actual: ' + (ciudadActual || 'no especificada') + '\n' +
-    '- Fase lunar actual: ' + moon.n + ' ' + moon.e + '\n' +
-    '- Enfoque: ' + enfoque + '\n\n' +
-    'Genera una lectura astrológica diaria en español. Usa ### para cada sección:\n\n' +
-    '### Perfil natal\n' +
-    'Signo solar, luna natal aproximada y ascendente estimado. 3-4 líneas.\n\n' +
-    '### La luna de hoy y tú\n' +
-    'Cómo ' + moon.n + ' interactúa con tu carta natal hoy. Concreto y práctico.\n\n' +
-    '### ' + enfoque + '\n' +
-    'Consejo accionable para hoy en este tema.\n\n' +
-    '### Lo que fluye hoy\n' +
-    'Lista de 2-3 cosas que te favorecen.\n\n' +
-    '### Lo que requiere cuidado\n' +
-    'Lista de 2-3 cosas a tener en cuenta.\n\n' +
-    '### Frase del día\n' +
-    'Una sola frase corta y poderosa para ' + nombre + '.\n\n' +
-    'Tono: directo, cálido, de tú. Máximo 420 palabras.';
-
-  getReading(prompt).then(function (text) {
-    var body = mdToHtml(text);
-    body = body.replace(
-      /(<h3>[Ff]rase del [Dd]ía<\/h3>)([\s\S]*?)(<h3>|$)/,
-      function (_, h, content, next) {
-        return h + '<div class="frase-dia">' + content.replace(/<\/?p>/g, '').trim() + '</div>' + next;
-      }
-    );
-    document.getElementById('rPhase').textContent = moon.e;
-    document.getElementById('rTitle').textContent = 'Lectura de ' + cap(nombre);
-    document.getElementById('rFecha').textContent = cap(today) + ' · ' + moon.n;
-    document.getElementById('rBody').innerHTML = body;
+  var prompt='Eres un astrólogo experto en astrología occidental tropical. Hoy es '+today+'.\n\nDatos:\n- Nombre: '+nombre+'\n- Fecha de nacimiento: '+fechaNac+'\n- Hora de nacimiento: '+(horaNac||'desconocida')+'\n- Ciudad de nacimiento: '+(ciudadNac||'no especificada')+'\n- Ciudad actual: '+(ciudadActual||'no especificada')+'\n- Fase lunar actual: '+moon.n+' '+moon.e+'\n- Enfoque: '+enfoque+'\n\nGenera una lectura astrológica diaria en español. Usa ### para cada sección:\n\n### Perfil natal\nSigno solar, luna natal aproximada y ascendente estimado. 3-4 líneas.\n\n### La luna de hoy y tú\nCómo '+moon.n+' interactúa con tu carta natal hoy. Concreto y práctico.\n\n### '+enfoque+'\nConsejo accionable para hoy en este tema.\n\n### Lo que fluye hoy\nLista de 2-3 cosas que te favorecen.\n\n### Lo que requiere cuidado\nLista de 2-3 cosas a tener en cuenta.\n\n### Frase del día\nUna sola frase corta y poderosa para '+nombre+'.\n\nTono: directo, cálido, de tú. Máximo 420 palabras.';
+  fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free',messages:[{role:'user',content:prompt}],max_tokens:900})})
+  .then(function(res){return res.json()})
+  .then(function(data){
+    if(data.error)throw new Error(typeof data.error==='object'?data.error.message:data.error);
+    var text=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
+    if(!text)throw new Error('Respuesta vacía. Intenta de nuevo.');
+    var body=mdToHtml(text);
+    body=body.replace(/(<h3>[Ff]rase del [Dd]ía<\/h3>)([\s\S]*?)(<h3>|$)/,function(_,h,content,next){return h+'<div class="frase-dia">'+content.replace(/<\/?p>/g,'').trim()+'</div>'+next});
+    document.getElementById('rPhase').textContent=moon.e;
+    document.getElementById('rTitle').textContent='Lectura de '+cap(nombre);
+    document.getElementById('rFecha').textContent=cap(today)+' · '+moon.n;
+    document.getElementById('rBody').innerHTML=body;
     document.getElementById('result').classList.add('on');
-    setTimeout(function () {
-      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }).catch(function (err) {
-    errorEl.textContent = 'Error: ' + err.message;
-    errorEl.classList.add('on');
-  }).finally(function () {
-    document.getElementById('btnConsultar').disabled = false;
+    setTimeout(function(){document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'})},100);
+  }).catch(function(err){
+    document.getElementById('errorMsg').textContent='Error: '+err.message;
+    document.getElementById('errorMsg').classList.add('on');
+  }).finally(function(){
+    document.getElementById('btnConsultar').disabled=false;
     document.getElementById('loader').classList.remove('on');
   });
 });
 </script>
-
 </body>
 </html>
