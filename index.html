@@ -497,10 +497,10 @@ function mdToHtml(t) {
 
 // Gemini
 const KEY = 'AIzaSyBDq1mjEgGWzyamefYjdRzN96TwtZzw5Kk';
-const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEY}`;
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + KEY;
 
 async function getReading(prompt) {
-  const res = await fetch(URL, {
+  const res = await fetch(GEMINI_ENDPOINT, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
