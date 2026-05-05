@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -181,7 +182,7 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
   document.getElementById('loader').classList.add('on');
   document.getElementById('result').classList.remove('on');
   var prompt='Eres un astrólogo experto en astrología occidental tropical. Hoy es '+today+'.\n\nDatos:\n- Nombre: '+nombre+'\n- Fecha de nacimiento: '+fechaNac+'\n- Hora de nacimiento: '+(horaNac||'desconocida')+'\n- Ciudad de nacimiento: '+(ciudadNac||'no especificada')+'\n- Ciudad actual: '+(ciudadActual||'no especificada')+'\n- Fase lunar actual: '+moon.n+' '+moon.e+'\n- Enfoque: '+enfoque+'\n\nGenera una lectura astrológica diaria en español. Usa ### para cada sección:\n\n### Perfil natal\nSigno solar, luna natal aproximada y ascendente estimado. 3-4 líneas.\n\n### La luna de hoy y tú\nCómo '+moon.n+' interactúa con tu carta natal hoy. Concreto y práctico.\n\n### '+enfoque+'\nConsejo accionable para hoy en este tema.\n\n### Lo que fluye hoy\nLista de 2-3 cosas que te favorecen.\n\n### Lo que requiere cuidado\nLista de 2-3 cosas a tener en cuenta.\n\n### Frase del día\nUna sola frase corta y poderosa para '+nombre+'.\n\nTono: directo, cálido, de tú. Máximo 420 palabras.';
-  fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free',messages:[{role:'user',content:prompt}],max_tokens:900})})
+  fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'google/gemma-3-27b-it:free',messages:[{role:'user',content:prompt}],max_tokens:900})})
   .then(function(res){return res.json()})
   .then(function(data){
     if(data.error)throw new Error(typeof data.error==='object'?data.error.message:data.error);
@@ -204,5 +205,6 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
   });
 });
 </script>
+
 </body>
 </html>
