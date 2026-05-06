@@ -212,50 +212,142 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
 });
 
 // GeoNames autocomplete
-var geoTimer = null;
-var GEONAMES_USER = 'astrodiario';
+<script>
+/* =========================
+   AUTOCOMPLETE CIUDAD
+========================= */
 
-document.getElementById('ciudadNac').addEventListener('input', function() {
-  var q = this.value.trim();
-  clearTimeout(geoTimer);
+const GEONAMES_USER = 'astrodiario';
+
+let cityTimer = null;
+let selectedIndex = -1;
+let results = [];
+
+const input = document.getElementById('ciudadNac');
+const box = document.getElementById('ciudadSuggestions');
+
+input.addEventListener('input', onInput);
+input.addEventListener('keydown', onKeyDown);
+input.addEventListener('blur', () => {
+  setTimeout(() => box.style.display = 'none', 200);
+});
+
+function onInput() {
+  const q = input.value.trim();
+
+  clearTimeout(cityTimer);
+  reset();
+
   document.getElementById('ciudadLat').value = '';
   document.getElementById('ciudadLon').value = '';
-  this.classList.remove('ciudad-selected');
-  if (q.length < 2) { document.getElementById('ciudadSuggestions').style.display = 'none'; return; }
-  geoTimer = setTimeout(function() { searchCities(q); }, 350);
-});
+  input.classList.remove('ciudad-selected');
 
-document.getElementById('ciudadNac').addEventListener('blur', function() {
-  setTimeout(function() { document.getElementById('ciudadSuggestions').style.display = 'none'; }, 200);
-});
+  if (q.length < 2) {
+    box.style.display = 'none';
+    return;
+  }
 
-function searchCities(q) {
-  var url = 'https://secure.geonames.org/searchJSON?q=' + encodeURIComponent(q) + '&maxRows=6&lang=es&featureClass=P&orderby=population&username=' + GEONAMES_USER;
-  fetch(url).then(function(r){ return r.json(); }).then(function(data) {
-    var box = document.getElementById('ciudadSuggestions');
+  cityTimer = setTimeout(() => searchCities(q), 300);
+}
+
+function onKeyDown(e) {
+  if (box.style.display === 'none') return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+    highlight();
+  }
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex = Math.max(selectedIndex - 1, 0);
+    highlight();
+  }
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (results[selectedIndex]) {
+      selectCity(results[selectedIndex]);
+    }
+  }
+}
+
+function reset() {
+  selectedIndex = -1;
+  results = [];
+}
+
+function highlight() {
+  const items = box.querySelectorAll('div');
+  items.forEach((el, i) => {
+    el.style.background =
+      i === selectedIndex
+        ? 'rgba(155,114,239,0.25)'
+        : 'transparent';
+  });
+}
+
+async function searchCities(q) {
+  try {
+    const url = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(q)}&maxRows=6&lang=es&featureClass=P&orderby=population&username=${GEONAMES_USER}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
     box.innerHTML = '';
-    if (!data.geonames || data.geonames.length === 0) { box.style.display = 'none'; return; }
-    data.geonames.forEach(function(city) {
-      var div = document.createElement('div');
-      var country = city.countryName || '';
-      var admin = city.adminName1 || '';
-      var label = city.name + (admin ? ', ' + admin : '') + (country ? ', ' + country : '');
-      div.innerHTML = city.name + '<span>' + (admin ? admin + ', ' : '') + country + '</span>';
-      div.addEventListener('mousedown', function(e) {
+    reset();
+
+    if (!data.geonames || data.geonames.length === 0) {
+      box.innerHTML = `<div style="opacity:.6">Sin resultados</div>`;
+      box.style.display = 'block';
+      return;
+    }
+
+    results = data.geonames;
+
+    data.geonames.forEach((city) => {
+      const country = city.countryName || '';
+      const admin = city.adminName1 || '';
+
+      const label = `${city.name}${admin ? ', ' + admin : ''}${country ? ', ' + country : ''}`;
+
+      const div = document.createElement('div');
+      div.innerHTML = `${city.name}<span>${admin ? admin + ', ' : ''}${country}</span>`;
+
+      div.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        document.getElementById('ciudadNac').value = label;
-        document.getElementById('ciudadLat').value = city.lat;
-        document.getElementById('ciudadLon').value = city.lng;
-        document.getElementById('ciudadNac').classList.add('ciudad-selected');
-        box.style.display = 'none';
-        // Estimate timezone offset from longitude
-        var tzOffset = Math.round(parseFloat(city.lng) / 15);
-        document.getElementById('ciudadTz').value = tzOffset;
+        selectCity(city);
       });
+
       box.appendChild(div);
     });
+
     box.style.display = 'block';
-  }).catch(function(){ document.getElementById('ciudadSuggestions').style.display = 'none'; });
+
+  } catch (err) {
+    console.error('Autocomplete error:', err);
+    box.style.display = 'none';
+  }
+}
+
+function selectCity(city) {
+  const country = city.countryName || '';
+  const admin = city.adminName1 || '';
+
+  const label = `${city.name}${admin ? ', ' + admin : ''}${country ? ', ' + country : ''}`;
+
+  input.value = label;
+
+  document.getElementById('ciudadLat').value = city.lat;
+  document.getElementById('ciudadLon').value = city.lng;
+
+  // timezone estimado
+  document.getElementById('ciudadTz').value =
+    Math.round(parseFloat(city.lng) / 15);
+
+  input.classList.add('ciudad-selected');
+  box.style.display = 'none';
 }
 </script>
 </body>
