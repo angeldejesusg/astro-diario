@@ -9,6 +9,39 @@
 :root{--bg:#080710;--border:rgba(180,150,255,0.12);--gold:#d4a843;--gold2:#f0c96a;--purple:#9b72ef;--purple2:#c4a5ff;--text:#e8e0f0;--muted:#7a7090;--glow-purple:rgba(155,114,239,0.18)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('ciudadNac');
+  const box = document.getElementById('ciudadSuggestions');
+
+  input.addEventListener('input', async () => {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      box.style.display = 'none';
+      return;
+    }
+
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+    const data = await res.json();
+
+    box.innerHTML = '';
+
+    data.slice(0,5).forEach(place => {
+      const div = document.createElement('div');
+      div.textContent = place.display_name;
+
+      div.onclick = () => {
+        input.value = place.display_name;
+        box.style.display = 'none';
+      };
+
+      box.appendChild(div);
+    });
+
+    box.style.display = 'block';
+  });
+});
+</script>
 body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:18px;line-height:1.7;min-height:100vh;overflow-x:hidden}
 #cosmos{position:fixed;inset:0;z-index:0;pointer-events:none}
 .wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:60px 24px 100px}
