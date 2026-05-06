@@ -211,43 +211,152 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
   });
 });
 
-// GeoNames autocomplete
-var geoTimer = null;
-var GEONAMES_USER = 'astrodiario';
+// ===============================
+// AUTOCOMPLETE CIUDAD (MEJORADO)
+// ===============================
 
-document.getElementById('ciudadNac').addEventListener('input', function() {
-  var q = this.value.trim();
-  clearTimeout(geoTimer);
+let cityTimer = null;
+let selectedIndex = -1;
+let currentResults = [];
+
+const inputCiudad = document.getElementById('ciudadNac');
+const box = document.getElementById('ciudadSuggestions');
+
+inputCiudad.addEventListener('input', function () {
+  const q = this.value.trim();
+
+  clearTimeout(cityTimer);
+  resetSelection();
+
   document.getElementById('ciudadLat').value = '';
   document.getElementById('ciudadLon').value = '';
   this.classList.remove('ciudad-selected');
-  if (q.length < 2) { document.getElementById('ciudadSuggestions').style.display = 'none'; return; }
-  geoTimer = setTimeout(function() { searchCities(q); }, 350);
+
+  if (q.length < 2) {
+    box.style.display = 'none';
+    return;
+  }
+
+  cityTimer = setTimeout(() => searchCities(q), 300);
 });
 
-document.getElementById('ciudadNac').addEventListener('blur', function() {
-  setTimeout(function() { document.getElementById('ciudadSuggestions').style.display = 'none'; }, 200);
+inputCiudad.addEventListener('keydown', function (e) {
+  if (!box.style.display || box.style.display === 'none') return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+    updateHighlight();
+  }
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex = Math.max(selectedIndex - 1, 0);
+    updateHighlight();
+  }
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (currentResults[selectedIndex]) {
+      selectCity(currentResults[selectedIndex]);
+    }
+  }
 });
+
+inputCiudad.addEventListener('blur', () => {
+  setTimeout(() => (box.style.display = 'none'), 200);
+});
+
+function resetSelection() {
+  selectedIndex = -1;
+  currentResults = [];
+}
+
+function updateHighlight() {
+  const items = box.querySelectorAll('div');
+  items.forEach((el, i) => {
+    el.style.background = i === selectedIndex
+      ? 'rgba(155,114,239,0.25)'
+      : 'transparent';
+  });
+}
 
 function searchCities(q) {
-  var url = 'https://secure.geonames.org/searchJSON?q=' + encodeURIComponent(q) + '&maxRows=6&lang=es&featureClass=P&orderby=population&username=' + GEONAMES_USER;
-  fetch(url).then(function(r){ return r.json(); }).then(function(data) {
-    var box = document.getElementById('ciudadSuggestions');
-    box.innerHTML = '';
-    if (!data.geonames || data.geonames.length === 0) { box.style.display = 'none'; return; }
-    data.geonames.forEach(function(city) {
-      var div = document.createElement('div');
-      var country = city.countryName || '';
-      var admin = city.adminName1 || '';
-      var label = city.name + (admin ? ', ' + admin : '') + (country ? ', ' + country : '');
-      div.innerHTML = city.name + '<span>' + (admin ? admin + ', ' : '') + country + '</span>';
-      div.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        document.getElementById('ciudadNac').value = label;
-        document.getElementById('ciudadLat').value = city.lat;
-        document.getElementById('ciudadLon').value = city.lng;
-        document.getElementById('ciudadNac').classList.add('ciudad-selected');
-        box.style.display = 'none';
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`;
+
+  fetch(url, {
+    headers: {
+      'Accept-Language': 'es'
+    }
+  })
+    .then(r => r.json())
+    .then(data => {
+      box.innerHTML = '';
+      resetSelection();
+
+      if (!data || data.length === 0) {
+        box.innerHTML = `<div style="opacity:.6">Sin resultados</div>`;
+        box.style.display = 'block';
+        return;
+      }
+
+      currentResults = data;
+
+      data.forEach((place, index) => {
+        const city =
+          place.address.city ||
+          place.address.town ||
+          place.address.village ||
+          place.display_name.split(',')[0];
+
+        const country = place.address.country || '';
+        const state = place.address.state || '';
+
+        const label = `${city}${state ? ', ' + state : ''}${country ? ', ' + country : ''}`;
+
+        const div = document.createElement('div');
+        div.innerHTML = `${city}<span>${state ? state + ', ' : ''}${country}</span>`;
+
+        div.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          selectCity(place);
+        });
+
+        box.appendChild(div);
+      });
+
+      box.style.display = 'block';
+    })
+    .catch(err => {
+      console.error('Autocomplete error:', err);
+      box.style.display = 'none';
+    });
+}
+
+function selectCity(place) {
+  const city =
+    place.address.city ||
+    place.address.town ||
+    place.address.village ||
+    place.display_name.split(',')[0];
+
+  const country = place.address.country || '';
+  const state = place.address.state || '';
+
+  const label = `${city}${state ? ', ' + state : ''}${country ? ', ' + country : ''}`;
+
+  inputCiudad.value = label;
+
+  document.getElementById('ciudadLat').value = place.lat;
+  document.getElementById('ciudadLon').value = place.lon;
+
+  inputCiudad.classList.add('ciudad-selected');
+  box.style.display = 'none';
+
+  // estimación de timezone
+  const tzOffset = Math.round(parseFloat(place.lon) / 15);
+  document.getElementById('ciudadTz').value = tzOffset;
+}
         // Estimate timezone offset from longitude
         var tzOffset = Math.round(parseFloat(city.lng) / 15);
         document.getElementById('ciudadTz').value = tzOffset;
