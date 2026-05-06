@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -65,6 +64,12 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.4rem);font-
 .error.on{display:block}
 footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;font-style:italic;opacity:0.5}
 @media(max-width:500px){.fields{grid-template-columns:1fr}.field.span2{grid-column:1}.panel{padding:22px 18px}.result-body{padding:22px 18px}.result-head{padding:18px}}
+
+#ciudadSuggestions { display:none; position:absolute; top:100%; left:0; right:0; z-index:100; background:#0f0e1a; border:1px solid rgba(180,150,255,0.2); border-radius:0 0 10px 10px; max-height:220px; overflow-y:auto; }
+#ciudadSuggestions div { padding:10px 14px; cursor:pointer; font-size:0.95rem; color:var(--text); border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s; }
+#ciudadSuggestions div:hover { background:rgba(155,114,239,0.15); }
+#ciudadSuggestions div span { color:var(--muted); font-size:0.82rem; margin-left:6px; }
+.ciudad-selected { border-color:rgba(155,114,239,0.5) !important; }
 </style>
 </head>
 <body>
@@ -114,13 +119,13 @@ footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;fo
         <label>Hora de nacimiento</label>
         <input type="time" id="horaNac" />
       </div>
-      <div class="field span2">
+      <div class="field span2" style="position:relative">
         <label>Ciudad de nacimiento</label>
-        <input type="text" id="ciudadNac" placeholder="Ej. Riohacha, Colombia" />
-      </div>
-      <div class="field span2">
-        <label>Ciudad actual</label>
-        <input type="text" id="ciudadActual" placeholder="Ej. Medellín, Colombia" />
+        <input type="text" id="ciudadNac" placeholder="Escribe para buscar..." autocomplete="off" />
+        <div id="ciudadSuggestions"></div>
+        <input type="hidden" id="ciudadLat" />
+        <input type="hidden" id="ciudadLon" />
+        <input type="hidden" id="ciudadTz" value="-5" />
       </div>
       <div class="field span2">
         <label>Enfoque del día</label>
@@ -171,7 +176,8 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
   var fechaNac=document.getElementById('fechaNac').value;
   var horaNac=document.getElementById('horaNac').value;
   var ciudadNac=document.getElementById('ciudadNac').value.trim();
-  var ciudadActual=document.getElementById('ciudadActual').value.trim();
+  var ciudadLat=document.getElementById('ciudadLat').value;
+  var ciudadLon=document.getElementById('ciudadLon').value;
   var enfoqueEl=document.getElementById('enfoque');
   var enfoque=enfoqueEl.options[enfoqueEl.selectedIndex].text;
   var errorEl=document.getElementById('errorMsg');
@@ -181,7 +187,7 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
   document.getElementById('btnConsultar').disabled=true;
   document.getElementById('loader').classList.add('on');
   document.getElementById('result').classList.remove('on');
-  var prompt='Eres un astrólogo experto en astrología occidental tropical. Hoy es '+today+'.\n\nDatos:\n- Nombre: '+nombre+'\n- Fecha de nacimiento: '+fechaNac+'\n- Hora de nacimiento: '+(horaNac||'desconocida')+'\n- Ciudad de nacimiento: '+(ciudadNac||'no especificada')+'\n- Ciudad actual: '+(ciudadActual||'no especificada')+'\n- Fase lunar actual: '+moon.n+' '+moon.e+'\n- Enfoque: '+enfoque+'\n\nGenera una lectura astrológica diaria en español. Usa ### para cada sección:\n\n### Perfil natal\nSigno solar, luna natal aproximada y ascendente estimado. 3-4 líneas.\n\n### La luna de hoy y tú\nCómo '+moon.n+' interactúa con tu carta natal hoy. Concreto y práctico.\n\n### '+enfoque+'\nConsejo accionable para hoy en este tema.\n\n### Lo que fluye hoy\nLista de 2-3 cosas que te favorecen.\n\n### Lo que requiere cuidado\nLista de 2-3 cosas a tener en cuenta.\n\n### Frase del día\nUna sola frase corta y poderosa para '+nombre+'.\n\nTono: directo, cálido, de tú. Máximo 420 palabras.';
+  var prompt='Eres un astrólogo experto en astrología occidental tropical. Hoy es '+today+'.\n\nDatos:\n- Nombre: '+nombre+'\n- Fecha de nacimiento: '+fechaNac+'\n- Hora de nacimiento: '+(horaNac||'desconocida')+'\n- Ciudad de nacimiento: '+(ciudadNac||'no especificada')+(ciudadLat?'\n- Coordenadas: '+ciudadLat+', '+ciudadLon:'')+'\n- Fase lunar actual: '+moon.n+' '+moon.e+'\n- Enfoque: '+enfoque+'\n\nGenera una lectura astrológica diaria en español. Usa ### para cada sección:\n\n### Perfil natal\nSigno solar, luna natal aproximada y ascendente estimado. 3-4 líneas.\n\n### La luna de hoy y tú\nCómo '+moon.n+' interactúa con tu carta natal hoy. Concreto y práctico.\n\n### '+enfoque+'\nConsejo accionable para hoy en este tema.\n\n### Lo que fluye hoy\nLista de 2-3 cosas que te favorecen.\n\n### Lo que requiere cuidado\nLista de 2-3 cosas a tener en cuenta.\n\n### Frase del día\nUna sola frase corta y poderosa para '+nombre+'.\n\nTono: directo, cálido, de tú. Máximo 420 palabras.';
   fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openrouter/auto',messages:[{role:'user',content:prompt}],max_tokens:900})})
   .then(function(res){return res.json()})
   .then(function(data){
@@ -204,7 +210,53 @@ document.getElementById('btnConsultar').addEventListener('click',function(){
     document.getElementById('loader').classList.remove('on');
   });
 });
-</script>
 
+// GeoNames autocomplete
+var geoTimer = null;
+var GEONAMES_USER = 'astrodiario';
+
+document.getElementById('ciudadNac').addEventListener('input', function() {
+  var q = this.value.trim();
+  clearTimeout(geoTimer);
+  document.getElementById('ciudadLat').value = '';
+  document.getElementById('ciudadLon').value = '';
+  this.classList.remove('ciudad-selected');
+  if (q.length < 2) { document.getElementById('ciudadSuggestions').style.display = 'none'; return; }
+  geoTimer = setTimeout(function() { searchCities(q); }, 350);
+});
+
+document.getElementById('ciudadNac').addEventListener('blur', function() {
+  setTimeout(function() { document.getElementById('ciudadSuggestions').style.display = 'none'; }, 200);
+});
+
+function searchCities(q) {
+  var url = 'https://secure.geonames.org/searchJSON?q=' + encodeURIComponent(q) + '&maxRows=6&lang=es&featureClass=P&orderby=population&username=' + GEONAMES_USER;
+  fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+    var box = document.getElementById('ciudadSuggestions');
+    box.innerHTML = '';
+    if (!data.geonames || data.geonames.length === 0) { box.style.display = 'none'; return; }
+    data.geonames.forEach(function(city) {
+      var div = document.createElement('div');
+      var country = city.countryName || '';
+      var admin = city.adminName1 || '';
+      var label = city.name + (admin ? ', ' + admin : '') + (country ? ', ' + country : '');
+      div.innerHTML = city.name + '<span>' + (admin ? admin + ', ' : '') + country + '</span>';
+      div.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        document.getElementById('ciudadNac').value = label;
+        document.getElementById('ciudadLat').value = city.lat;
+        document.getElementById('ciudadLon').value = city.lng;
+        document.getElementById('ciudadNac').classList.add('ciudad-selected');
+        box.style.display = 'none';
+        // Estimate timezone offset from longitude
+        var tzOffset = Math.round(parseFloat(city.lng) / 15);
+        document.getElementById('ciudadTz').value = tzOffset;
+      });
+      box.appendChild(div);
+    });
+    box.style.display = 'block';
+  }).catch(function(){ document.getElementById('ciudadSuggestions').style.display = 'none'; });
+}
+</script>
 </body>
 </html>
