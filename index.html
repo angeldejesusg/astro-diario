@@ -1,275 +1,218 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Astro Diario</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
 <style>
 :root{--bg:#080710;--border:rgba(180,150,255,0.12);--gold:#d4a843;--gold2:#f0c96a;--purple:#9b72ef;--purple2:#c4a5ff;--text:#e8e0f0;--muted:#7a7090;--glow-purple:rgba(155,114,239,0.18)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:18px;line-height:1.7;min-height:100vh;overflow-x:hidden}
-#cosmos{position:fixed;inset:0;z-index:0;pointer-events:none}
-.wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:60px 24px 100px}
-.masthead{text-align:center;margin-bottom:56px;animation:rise 1.2s cubic-bezier(.16,1,.3,1) both}
-@keyframes rise{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
-.sigil{display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;margin-bottom:20px;position:relative}
-.sigil svg{width:72px;height:72px;animation:rotateSigil 30s linear infinite;filter:drop-shadow(0 0 12px rgba(155,114,239,0.6))}
-@keyframes rotateSigil{to{transform:rotate(360deg)}}
-.sigil-moon{position:absolute;font-size:1.8rem;animation:rotateSigil 30s linear infinite reverse;filter:drop-shadow(0 0 8px var(--gold))}
-h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.4rem);font-weight:900;font-style:italic;line-height:1;letter-spacing:-0.02em;background:linear-gradient(160deg,var(--gold2) 0%,var(--gold) 40%,var(--purple2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
-.tagline{color:var(--muted);font-style:italic;font-size:1rem;letter-spacing:0.06em}
-.ornament{display:flex;align-items:center;gap:12px;margin:24px auto 0;width:fit-content;opacity:0.4}
-.ornament-line{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--purple))}
-.ornament-line.r{background:linear-gradient(90deg,var(--purple),transparent)}
-.ornament span{color:var(--purple2);font-size:0.7rem;letter-spacing:0.3em}
-.panel{background:rgba(15,14,26,0.7);border:1px solid var(--border);border-radius:20px;padding:36px;backdrop-filter:blur(16px);animation:rise 1s 0.15s cubic-bezier(.16,1,.3,1) both}
-.panel-label{font-family:'Playfair Display',serif;font-size:0.72rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--purple2);opacity:0.7;margin-bottom:22px;display:flex;align-items:center;gap:10px}
-.panel-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
-.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.field{display:flex;flex-direction:column;gap:6px}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',serif}
+
+.wrap{max-width:680px;margin:auto;padding:40px 20px}
+.panel{background:rgba(15,14,26,0.7);padding:24px;border-radius:16px;border:1px solid var(--border)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column}
 .field.span2{grid-column:1/-1}
-.field label{font-family:'Playfair Display',serif;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
-.field input,.field select{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;-webkit-appearance:none}
-.field input:focus,.field select:focus{border-color:rgba(155,114,239,0.5);box-shadow:0 0 0 3px var(--glow-purple)}
-.field input::placeholder{color:rgba(122,112,144,0.5);font-style:italic}
-.field select option{background:#0f0e1a}
-.btn-main{width:100%;margin-top:24px;padding:16px 24px;background:linear-gradient(135deg,#9b72ef 0%,#6a42c2 100%);border:none;border-radius:12px;color:#fff;font-family:'Playfair Display',serif;font-size:1.05rem;font-style:italic;letter-spacing:0.04em;cursor:pointer;transition:transform 0.15s,box-shadow 0.2s,opacity 0.2s}
-.btn-main:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 40px rgba(155,114,239,0.4)}
-.btn-main:disabled{opacity:0.5;cursor:not-allowed}
-.loader{display:none;text-align:center;padding:48px 24px}
+
+input,select{padding:10px;border-radius:8px;border:1px solid var(--border);background:#111;color:white}
+
+button{margin-top:20px;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#9b72ef,#6a42c2);color:white;cursor:pointer}
+
+.loader{display:none;text-align:center;margin-top:30px}
 .loader.on{display:block}
-.loader-orb{width:56px;height:56px;border-radius:50%;border:1.5px solid rgba(155,114,239,0.2);border-top-color:var(--purple);border-right-color:var(--gold);margin:0 auto 20px;animation:spin 1.6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loader p{color:var(--muted);font-style:italic;animation:breathe 2.4s ease-in-out infinite}
-@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
-.result{display:none;animation:rise 0.7s cubic-bezier(.16,1,.3,1) both}
+
+.result{display:none;margin-top:30px}
 .result.on{display:block}
-.result-head{background:linear-gradient(135deg,rgba(155,114,239,0.1),rgba(212,168,67,0.06));border:1px solid var(--border);border-radius:16px 16px 0 0;padding:24px 32px;display:flex;align-items:center;gap:18px;border-bottom:none}
-.result-phase{font-size:2.4rem;filter:drop-shadow(0 0 10px var(--gold));flex-shrink:0}
-.result-info h2{font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;color:var(--gold2);font-weight:400;line-height:1.2}
-.result-info .fecha{color:var(--muted);font-size:0.88rem;margin-top:3px}
-.result-body{background:rgba(15,14,26,0.7);border:1px solid var(--border);border-radius:0 0 16px 16px;padding:32px;backdrop-filter:blur(16px);line-height:1.8;font-size:1.02rem}
-.result-body h3{font-family:'Playfair Display',serif;font-size:0.78rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple2);margin:28px 0 10px;opacity:0.85}
-.result-body h3:first-child{margin-top:0}
-.result-body p{color:rgba(232,224,240,0.85);margin-bottom:6px}
-.result-body ul{list-style:none;margin-bottom:8px}
-.result-body li{color:rgba(232,224,240,0.82);padding-left:20px;position:relative;margin-bottom:4px}
-.result-body li::before{content:'◆';position:absolute;left:0;color:var(--gold);font-size:0.5rem;top:9px}
-.result-body strong{color:var(--gold2);font-weight:500}
-.result-body em{color:var(--purple2);font-style:italic}
-.frase-dia{margin-top:28px;padding:18px 22px;background:linear-gradient(135deg,rgba(155,114,239,0.08),rgba(212,168,67,0.05));border-left:2px solid var(--gold);border-radius:0 10px 10px 0;font-style:italic;font-size:1.1rem;color:var(--gold2)}
-.error{display:none;margin-top:16px;padding:14px 18px;background:rgba(220,50,50,0.08);border:1px solid rgba(220,80,80,0.25);border-radius:10px;color:#e08888;font-size:0.92rem;line-height:1.5}
+
+.error{display:none;color:#ff8080;margin-top:10px}
 .error.on{display:block}
-footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;font-style:italic;opacity:0.5}
-@media(max-width:500px){.fields{grid-template-columns:1fr}.field.span2{grid-column:1}.panel{padding:22px 18px}.result-body{padding:22px 18px}.result-head{padding:18px}}
 
-#ciudadSuggestions { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:200; background:#13122a; border:1px solid rgba(155,114,239,0.3); border-radius:10px; max-height:240px; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.5); }
-#ciudadSuggestions div { padding:11px 14px; cursor:pointer; font-size:0.95rem; color:var(–text); border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s; line-height:1.3; }
-#ciudadSuggestions div:last-child { border-bottom:none; }
-#ciudadSuggestions div:hover, #ciudadSuggestions div:active { background:rgba(155,114,239,0.18); }
-#ciudadSuggestions div strong { color:var(–text); font-weight:500; display:block; }
-#ciudadSuggestions div span { color:var(–muted); font-size:0.82rem; display:block; margin-top:1px; }
-.ciudad-selected { border-color:rgba(155,114,239,0.6) !important; background:rgba(155,114,239,0.06) !important; }
+#ciudadSuggestions{position:absolute;background:#13122a;border:1px solid var(--border);border-radius:8px;display:none;max-height:200px;overflow:auto}
+#ciudadSuggestions div{padding:8px;cursor:pointer}
+#ciudadSuggestions div:hover{background:rgba(155,114,239,0.2)}
 </style>
-
 </head>
+
 <body>
-<canvas id="cosmos"></canvas>
+
 <div class="wrap">
-  <header class="masthead">
-    <div class="sigil">
-      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="36" cy="36" r="34" stroke="rgba(155,114,239,0.3)" stroke-width="0.8"/>
-        <circle cx="36" cy="36" r="26" stroke="rgba(212,168,67,0.2)" stroke-width="0.6"/>
-        <circle cx="36" cy="2" r="2" fill="rgba(155,114,239,0.6)"/>
-        <circle cx="36" cy="70" r="2" fill="rgba(155,114,239,0.6)"/>
-        <circle cx="2" cy="36" r="2" fill="rgba(155,114,239,0.6)"/>
-        <circle cx="70" cy="36" r="2" fill="rgba(155,114,239,0.6)"/>
-        <circle cx="9.8" cy="9.8" r="1.5" fill="rgba(212,168,67,0.5)"/>
-        <circle cx="62.2" cy="9.8" r="1.5" fill="rgba(212,168,67,0.5)"/>
-        <circle cx="9.8" cy="62.2" r="1.5" fill="rgba(212,168,67,0.5)"/>
-        <circle cx="62.2" cy="62.2" r="1.5" fill="rgba(212,168,67,0.5)"/>
-        <line x1="36" y1="2" x2="36" y2="70" stroke="rgba(155,114,239,0.1)" stroke-width="0.5"/>
-        <line x1="2" y1="36" x2="70" y2="36" stroke="rgba(155,114,239,0.1)" stroke-width="0.5"/>
-        <line x1="9.8" y1="9.8" x2="62.2" y2="62.2" stroke="rgba(212,168,67,0.08)" stroke-width="0.5"/>
-        <line x1="62.2" y1="9.8" x2="9.8" y2="62.2" stroke="rgba(212,168,67,0.08)" stroke-width="0.5"/>
-      </svg>
-      <span class="sigil-moon">☽</span>
-    </div>
-    <h1>Astro Diario</h1>
-    <p class="tagline">Lectura astrológica personalizada del día</p>
-    <div class="ornament">
-      <div class="ornament-line"></div>
-      <span>✦ ✦ ✦</span>
-      <div class="ornament-line r"></div>
-    </div>
-  </header>
 
-  <div class="panel">
-    <div class="panel-label">Datos natales</div>
-    <div class="fields">
-      <div class="field span2">
-        <label>Nombre</label>
-        <input type="text" id="nombre" placeholder="Tu nombre" />
-      </div>
-      <div class="field">
-        <label>Fecha de nacimiento</label>
-        <input type="date" id="fechaNac" />
-      </div>
-      <div class="field">
-        <label>Hora de nacimiento</label>
-        <input type="time" id="horaNac" />
-      </div>
-      <div class="field span2" style="position:relative">
-        <label>Ciudad de nacimiento</label>
-        <input type="text" id="ciudadNac" placeholder="Escribe para buscar..." autocomplete="off" />
-        <div id="ciudadSuggestions"></div>
-        <input type="hidden" id="ciudadLat" />
-        <input type="hidden" id="ciudadLon" />
-        <input type="hidden" id="ciudadTz" value="-5" />
-      </div>
-      <div class="field span2">
-        <label>Enfoque del día</label>
-        <select id="enfoque">
-          <option>General — todos los aspectos</option>
-          <option>Trabajo y carrera</option>
-          <option>Relaciones y amor</option>
-          <option>Finanzas y dinero</option>
-          <option>Salud y energía</option>
-          <option>Creatividad y proyectos</option>
-          <option>Redes sociales y comunicación</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn-main" id="btnConsultar">✦ Revelar mi lectura de hoy</button>
-    <div class="error" id="errorMsg"></div>
-  </div>
+<h1>Astro Diario</h1>
 
-  <div class="loader" id="loader">
-    <div class="loader-orb"></div>
-    <p>Los astros están calculando tu destino…</p>
-  </div>
+<div class="panel">
+<div class="fields">
 
-  <div class="result" id="result">
-    <div class="result-head">
-      <span class="result-phase" id="rPhase">🌙</span>
-      <div class="result-info">
-        <h2 id="rTitle">Lectura del día</h2>
-        <div class="fecha" id="rFecha"></div>
-      </div>
-    </div>
-    <div class="result-body" id="rBody"></div>
-  </div>
+<div class="field span2">
+<label>Nombre</label>
+<input id="nombre">
+</div>
 
-  <footer>Las estrellas sugieren — tú decides &nbsp;✦&nbsp; Astro Diario</footer>
+<div class="field">
+<label>Fecha</label>
+<input type="date" id="fechaNac">
+</div>
+
+<div class="field">
+<label>Hora</label>
+<input type="time" id="horaNac">
+</div>
+
+<div class="field span2" style="position:relative">
+<label>Ciudad</label>
+<input id="ciudadNac">
+<div id="ciudadSuggestions"></div>
+<input type="hidden" id="ciudadLat">
+<input type="hidden" id="ciudadLon">
+<input type="hidden" id="ciudadTz" value="-5">
+</div>
+
+<div class="field span2">
+<select id="enfoque">
+<option>General</option>
+<option>Trabajo</option>
+<option>Relaciones</option>
+</select>
+</div>
+
+</div>
+
+<button id="btnConsultar">Consultar</button>
+<div class="error" id="errorMsg"></div>
+
+</div>
+
+<div class="loader" id="loader">
+<p>Calculando tu carta y alineando interpretaciones…</p>
+</div>
+
+<div class="result" id="result">
+<div id="rBody"></div>
+</div>
+
 </div>
 
 <script>
-(function(){var c=document.getElementById('cosmos'),ctx=c.getContext('2d'),W,H,stars=[],nebulae=[];function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}function init(){resize();stars=[];for(var i=0;i<200;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+0.2,o:Math.random()*0.5+0.1,s:Math.random()*0.008+0.002,p:Math.random()*Math.PI*2});nebulae=[{x:W*0.15,y:H*0.2,r:250,c:'rgba(155,114,239,0.06)'},{x:W*0.85,y:H*0.7,r:200,c:'rgba(212,168,67,0.05)'},{x:W*0.5,y:H*0.5,r:300,c:'rgba(100,60,180,0.04)'}]}function draw(t){ctx.clearRect(0,0,W,H);for(var i=0;i<nebulae.length;i++){var n=nebulae[i],g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);g.addColorStop(0,n.c);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fill()}for(var j=0;j<stars.length;j++){var s=stars[j],o=s.o*(0.6+0.4*Math.sin(t*0.001*s.s*1000+s.p));ctx.save();ctx.globalAlpha=o;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();ctx.restore()}requestAnimationFrame(draw)}window.addEventListener('resize',init);init();requestAnimationFrame(draw)})();
-
-function moonPhase(){var known=new Date('2000-01-06T18:14:00Z'),d=(Date.now()-known.getTime())/86400000,p=((d%29.53)+29.53)%29.53;if(p<1.85)return{e:'🌑',n:'Luna Nueva'};if(p<7.38)return{e:'🌒',n:'Creciente'};if(p<9.22)return{e:'🌓',n:'Cuarto Creciente'};if(p<14.77)return{e:'🌔',n:'Gibosa Creciente'};if(p<16.61)return{e:'🌕',n:'Luna Llena'};if(p<22.15)return{e:'🌖',n:'Gibosa Menguante'};if(p<23.99)return{e:'🌗',n:'Cuarto Menguante'};return{e:'🌘',n:'Menguante'}}
-function todayStr(){return new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
-function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
-function mdToHtml(t){var lines=t.split('\n'),html='',inList=false;for(var i=0;i<lines.length;i++){var line=lines[i];if(/^###?\s/.test(line)){if(inList){html+='</ul>';inList=false}html+='<h3>'+line.replace(/^###?\s/,'')+'</h3>'}else if(/^[-•✦◆]\s/.test(line)){if(!inList){html+='<ul>';inList=true}html+='<li>'+line.replace(/^[-•✦◆]\s/,'').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')+'</li>'}else if(line.trim()===''){if(inList){html+='</ul>';inList=false}}else{if(inList){html+='</ul>';inList=false}html+='<p>'+line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')+'</p>'}}if(inList)html+='</ul>';return html}
-
-document.getElementById('btnConsultar').addEventListener('click',function(){
-  var nombre=document.getElementById('nombre').value.trim()||'Consultante';
-  var fechaNac=document.getElementById('fechaNac').value;
-  var horaNac=document.getElementById('horaNac').value;
-  var ciudadNac=document.getElementById('ciudadNac').value.trim();
-  var ciudadLat=document.getElementById('ciudadLat').value;
-  var ciudadLon=document.getElementById('ciudadLon').value;
-  var enfoqueEl=document.getElementById('enfoque');
-  var enfoque=enfoqueEl.options[enfoqueEl.selectedIndex].text;
-  var errorEl=document.getElementById('errorMsg');
-  errorEl.classList.remove('on');
-  if(!fechaNac){errorEl.textContent='Por favor ingresa tu fecha de nacimiento.';errorEl.classList.add('on');return}
-  var moon=moonPhase(),today=todayStr();
-  document.getElementById('btnConsultar').disabled=true;
-  document.getElementById('loader').classList.add('on');
-  document.getElementById('result').classList.remove('on');
-  var prompt='Eres un astrólogo experto en astrología occidental tropical. Hoy es '+today+'.\n\nDatos:\n- Nombre: '+nombre+'\n- Fecha de nacimiento: '+fechaNac+'\n- Hora de nacimiento: '+(horaNac||'desconocida')+'\n- Ciudad de nacimiento: '+(ciudadNac||'no especificada')+(ciudadLat?'\n- Coordenadas: '+ciudadLat+', '+ciudadLon:'')+'\n- Fase lunar actual: '+moon.n+' '+moon.e+'\n- Enfoque: '+enfoque+'\n\nGenera una lectura astrológica diaria en español. Usa ### para cada sección:\n\n### Perfil natal\nSigno solar, luna natal aproximada y ascendente estimado. 3-4 líneas.\n\n### La luna de hoy y tú\nCómo '+moon.n+' interactúa con tu carta natal hoy. Concreto y práctico.\n\n### '+enfoque+'\nConsejo accionable para hoy en este tema.\n\n### Lo que fluye hoy\nLista de 2-3 cosas que te favorecen.\n\n### Lo que requiere cuidado\nLista de 2-3 cosas a tener en cuenta.\n\n### Frase del día\nUna sola frase corta y poderosa para '+nombre+'.\n\nTono: directo, cálido, de tú. Máximo 420 palabras.';
-  fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openrouter/auto',messages:[{role:'user',content:prompt}],max_tokens:900})})
-  .then(function(res){return res.json()})
-  .then(function(data){
-    if(data.error)throw new Error(typeof data.error==='object'?data.error.message:data.error);
-    var text=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
-    if(!text)throw new Error('Respuesta vacía. Intenta de nuevo.');
-    var body=mdToHtml(text);
-    body=body.replace(/(<h3>[Ff]rase del [Dd]ía<\/h3>)([\s\S]*?)(<h3>|$)/,function(_,h,content,next){return h+'<div class="frase-dia">'+content.replace(/<\/?p>/g,'').trim()+'</div>'+next});
-    document.getElementById('rPhase').textContent=moon.e;
-    document.getElementById('rTitle').textContent='Lectura de '+cap(nombre);
-    document.getElementById('rFecha').textContent=cap(today)+' · '+moon.n;
-    document.getElementById('rBody').innerHTML=body;
-    document.getElementById('result').classList.add('on');
-    setTimeout(function(){document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'})},100);
-  }).catch(function(err){
-    document.getElementById('errorMsg').textContent='Error: '+err.message;
-    document.getElementById('errorMsg').classList.add('on');
-  }).finally(function(){
-    document.getElementById('btnConsultar').disabled=false;
-    document.getElementById('loader').classList.remove('on');
-  });
-});
-
-// Geoapify autocomplete
-var geoTimer = null;
-var GEOAPIFY_KEY = '2f3c90a9afe64dc18dd4d97dc87e2b6e';
-
-document.getElementById('ciudadNac').addEventListener('input', function() {
-  var q = this.value.trim();
-  clearTimeout(geoTimer);
-  document.getElementById('ciudadLat').value = '';
-  document.getElementById('ciudadLon').value = '';
-  this.classList.remove('ciudad-selected');
-  if (q.length < 2) { document.getElementById('ciudadSuggestions').style.display = 'none'; return; }
-  geoTimer = setTimeout(function() { searchCities(q); }, 300);
-});
-
-document.getElementById('ciudadNac').addEventListener('blur', function() {
-  setTimeout(function() { document.getElementById('ciudadSuggestions').style.display = 'none'; }, 200);
-});
-
-document.getElementById('ciudadNac').addEventListener('focus', function() {
-  if (this.value.length >= 2 && document.getElementById('ciudadSuggestions').children.length > 0) {
-    document.getElementById('ciudadSuggestions').style.display = 'block';
-  }
-});
-
-function searchCities(q) {
-  var url = 'https://api.geoapify.com/v1/geocode/autocomplete?text=' + encodeURIComponent(q) + '&type=city&limit=6&lang=es&apiKey=' + GEOAPIFY_KEY;
-  fetch(url).then(function(r){ return r.json(); }).then(function(data) {
-    var box = document.getElementById('ciudadSuggestions');
-    box.innerHTML = '';
-    if (!data.features || data.features.length === 0) { box.style.display = 'none'; return; }
-    data.features.forEach(function(f) {
-      var p = f.properties;
-      var city = p.city || p.name || '';
-      var state = p.state || p.county || '';
-      var country = p.country || '';
-      var lat = f.geometry.coordinates[1];
-      var lon = f.geometry.coordinates[0];
-      var tz = p.timezone ? p.timezone.offset_STD_seconds / 3600 : Math.round(lon / 15);
-      var label = city + (state ? ', ' + state : '') + (country ? ', ' + country : '');
-      var div = document.createElement('div');
-      div.innerHTML = '<strong>' + city + '</strong><span>' + (state ? state + ', ' : '') + country + '</span>';
-      div.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        document.getElementById('ciudadNac').value = label;
-        document.getElementById('ciudadLat').value = lat;
-        document.getElementById('ciudadLon').value = lon;
-        document.getElementById('ciudadTz').value = tz;
-        document.getElementById('ciudadNac').classList.add('ciudad-selected');
-        box.style.display = 'none';
-      });
-      box.appendChild(div);
-    });
-    box.style.display = 'block';
-  }).catch(function(){ document.getElementById('ciudadSuggestions').style.display = 'none'; });
+function moonPhase(){
+return {e:'🌙',n:'Fase actual'}
 }
+
+document.getElementById('btnConsultar').addEventListener('click', async function(){
+
+let nombre=document.getElementById('nombre').value||'Consultante'
+let fechaNac=document.getElementById('fechaNac').value
+let horaNac=document.getElementById('horaNac').value
+let ciudad=document.getElementById('ciudadNac').value
+let lat=document.getElementById('ciudadLat').value
+let lon=document.getElementById('ciudadLon').value
+let enfoque=document.getElementById('enfoque').value
+
+let error=document.getElementById('errorMsg')
+error.classList.remove('on')
+
+if(!fechaNac){
+error.textContent='Ingresa fecha'
+error.classList.add('on')
+return
+}
+
+if(!lat || !lon){
+error.textContent='Selecciona una ciudad de la lista'
+error.classList.add('on')
+return
+}
+
+document.getElementById('loader').classList.add('on')
+document.getElementById('result').classList.remove('on')
+document.getElementById('rBody').innerHTML=''
+
+let moon=moonPhase()
+let today=new Date().toLocaleDateString()
+
+let prompt=`
+Datos del usuario:
+- Nombre: ${nombre}
+- Fecha: ${fechaNac}
+- Hora: ${horaNac||'no especificada'}
+- Ciudad: ${ciudad}
+- Enfoque: ${enfoque}
+
+Hoy es ${today} y la luna está en ${moon.n}.
+Quiero una lectura clara, directa y útil.
+`
+
+let birthData={
+year:parseInt(fechaNac.split('-')[0]),
+month:parseInt(fechaNac.split('-')[1]),
+day:parseInt(fechaNac.split('-')[2]),
+hour:horaNac?parseInt(horaNac.split(':')[0]):12,
+minute:horaNac?parseInt(horaNac.split(':')[1]):0,
+lat:parseFloat(lat),
+lon:parseFloat(lon),
+tz_offset:-5
+}
+
+try{
+
+let res=await fetch('/api/reading',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({prompt,birthData})
+})
+
+let data=await res.json()
+
+let text=data?.choices?.[0]?.message?.content || ''
+
+if(!text) throw new Error('Respuesta vacía')
+
+document.getElementById('rBody').innerText=text
+document.getElementById('result').classList.add('on')
+
+}catch(e){
+error.textContent=e.message
+error.classList.add('on')
+}
+
+document.getElementById('loader').classList.remove('on')
+
+})
+
+
+// Geoapify simple
+let KEY='2f3c90a9afe64dc18dd4d97dc87e2b6e'
+
+document.getElementById('ciudadNac').addEventListener('input', async function(){
+let q=this.value
+if(q.length<3)return
+
+let url=`https://api.geoapify.com/v1/geocode/autocomplete?text=${q}&apiKey=${KEY}`
+
+let r=await fetch(url)
+let data=await r.json()
+
+let box=document.getElementById('ciudadSuggestions')
+box.innerHTML=''
+
+data.features.forEach(f=>{
+let div=document.createElement('div')
+div.textContent=f.properties.city||f.properties.name
+
+div.onclick=()=>{
+document.getElementById('ciudadNac').value=div.textContent
+document.getElementById('ciudadLat').value=f.geometry.coordinates[1]
+document.getElementById('ciudadLon').value=f.geometry.coordinates[0]
+box.style.display='none'
+}
+
+box.appendChild(div)
+})
+
+box.style.display='block'
+})
 </script>
 
 </body>
