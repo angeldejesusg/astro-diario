@@ -79,8 +79,15 @@ footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;fo
 .carta-panel { background:rgba(15,14,26,0.7); border:1px solid var(--border); border-radius:16px; padding:24px; backdrop-filter:blur(16px); }
 .carta-title { font-family:'Playfair Display',serif; font-size:0.78rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--purple2); opacity:0.85; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
 .carta-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent); }
-.carta-svg-wrap { display:flex; justify-content:center; margin-bottom:24px; }
-.carta-svg-wrap svg { max-width:340px; width:100%; }
+.carta-svg-wrap { display:flex; justify-content:center; margin-bottom:20px; }
+.carta-svg-wrap svg { max-width:min(340px, 100%); width:100%; height:auto; }
+@media(max-width:500px) {
+  .carta-panel { padding:16px 12px; }
+  .carta-svg-wrap svg { max-width:100%; }
+  .carta-table { font-size:0.82rem; }
+  .carta-table td { padding:5px 4px; }
+  .carta-table td:first-child { width:22px; }
+}
 .carta-table { width:100%; border-collapse:collapse; font-size:0.9rem; }
 .carta-table th { font-family:'Playfair Display',serif; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); padding:6px 8px; text-align:left; border-bottom:1px solid var(--border); }
 .carta-table td { padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.03); color:rgba(232,224,240,0.85); }
@@ -677,149 +684,158 @@ function svgEl(tag, attrs) {
   return el;
 }
 
+function getThemeColors() {
+  var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  var themes = {
+    dark: {
+      bg:          '#0a091a',
+      outerStroke: 'rgba(155,114,239,0.25)',
+      innerFill:   '#0a091a',
+      innerStroke: 'rgba(155,114,239,0.2)',
+      coreFill:    'rgba(155,114,239,0.04)',
+      coreStroke:  'rgba(155,114,239,0.25)',
+      segStroke:   'rgba(255,255,255,0.07)',
+      houseStroke: 'rgba(212,168,67,0.3)',
+      houseNum:    'rgba(212,168,67,0.6)',
+      ascStroke:   '#f0c96a',
+      ascLabel:    '#f0c96a',
+      center:      'rgba(196,165,255,0.4)',
+    },
+    light: {
+      bg:          '#f8f5ef',
+      outerStroke: 'rgba(74,45,156,0.3)',
+      innerFill:   '#f8f5ef',
+      innerStroke: 'rgba(74,45,156,0.2)',
+      coreFill:    'rgba(74,45,156,0.05)',
+      coreStroke:  'rgba(74,45,156,0.3)',
+      segStroke:   'rgba(0,0,0,0.08)',
+      houseStroke: 'rgba(122,79,0,0.4)',
+      houseNum:    'rgba(92,58,0,0.75)',
+      ascStroke:   '#7a4f00',
+      ascLabel:    '#5c3a00',
+      center:      'rgba(74,45,156,0.35)',
+    },
+    cosmic: {
+      bg:          '#140f1e',
+      outerStroke: 'rgba(180,142,240,0.3)',
+      innerFill:   '#140f1e',
+      innerStroke: 'rgba(180,142,240,0.25)',
+      coreFill:    'rgba(180,142,240,0.06)',
+      coreStroke:  'rgba(180,142,240,0.3)',
+      segStroke:   'rgba(255,255,255,0.08)',
+      houseStroke: 'rgba(232,184,109,0.35)',
+      houseNum:    'rgba(232,184,109,0.7)',
+      ascStroke:   '#f5d08a',
+      ascLabel:    '#f5d08a',
+      center:      'rgba(212,184,255,0.45)',
+    }
+  };
+  return themes[theme] || themes.dark;
+}
+
 function drawWheel(natalData) {
   var svg = document.getElementById('cartaSvg');
   svg.innerHTML = '';
-  var W = 400, H = 400, cx = 200, cy = 200;
-  var rOuter = 185, rInner = 140, rCore = 70;
+  var cx = 200, cy = 200;
+  var rOuter = 185, rInner = 140, rCore = 68;
+  var tc = getThemeColors();
 
-  // Background
-  svg.appendChild(svgEl('circle', {cx:cx,cy:cy,r:rOuter,fill:'#0a091a',stroke:'rgba(155,114,239,0.2)','stroke-width':'1'}));
+  // Background circle
+  svg.appendChild(svgEl('circle', {cx:cx,cy:cy,r:rOuter,fill:tc.bg,stroke:tc.outerStroke,'stroke-width':'1.2'}));
 
-  // Ascendant offset - rotate wheel so ASC is on left (180deg)
+  // ASC offset
   var ascDeg = natalData.ascendant ? natalData.ascendant.absolute : 0;
-  var rotOffset = 180 - ascDeg; // so ASC appears at 9 o'clock
+  var rotOffset = 180 - ascDeg;
 
-  // Draw 12 sign segments
+  // 12 sign segments
   for (var i = 0; i < 12; i++) {
     var startAngle = i * 30 + rotOffset;
-    var endAngle = startAngle + 30;
-    var midAngle = startAngle + 15;
+    var endAngle   = startAngle + 30;
+    var midAngle   = startAngle + 15;
     var s1 = polarToCart(cx, cy, rInner, startAngle);
     var s2 = polarToCart(cx, cy, rOuter, startAngle);
     var e1 = polarToCart(cx, cy, rInner, endAngle);
     var e2 = polarToCart(cx, cy, rOuter, endAngle);
 
-    // Segment arc
-    var path = [
-      'M', s1.x, s1.y,
-      'L', s2.x, s2.y,
-      'A', rOuter, rOuter, 0, 0, 1, e2.x, e2.y,
-      'L', e1.x, e1.y,
-      'A', rInner, rInner, 0, 0, 0, s1.x, s1.y,
-      'Z'
-    ].join(' ');
-
+    var path = ['M',s1.x,s1.y,'L',s2.x,s2.y,'A',rOuter,rOuter,0,0,1,e2.x,e2.y,'L',e1.x,e1.y,'A',rInner,rInner,0,0,0,s1.x,s1.y,'Z'].join(' ');
     var signColor = SIGNS_DATA[i].color;
-    svg.appendChild(svgEl('path', {
-      d: path,
-      fill: signColor,
-      'fill-opacity': '0.08',
-      stroke: 'rgba(255,255,255,0.06)',
-      'stroke-width': '0.5'
-    }));
+    svg.appendChild(svgEl('path', {d:path,fill:signColor,'fill-opacity':'0.1',stroke:tc.segStroke,'stroke-width':'0.6'}));
 
     // Sign symbol
     var symPos = polarToCart(cx, cy, (rInner + rOuter) / 2, midAngle);
-    var symEl = svgEl('text', {
-      x: symPos.x, y: symPos.y,
-      'text-anchor': 'middle',
-      'dominant-baseline': 'central',
-      fill: signColor,
-      'font-size': '13',
-      opacity: '0.9'
-    });
+    var symEl = svgEl('text', {x:symPos.x,y:symPos.y,'text-anchor':'middle','dominant-baseline':'central',fill:signColor,'font-size':'13',opacity:'0.95'});
     symEl.textContent = SIGNS_DATA[i].symbol;
     svg.appendChild(symEl);
 
-    // Divider lines
-    var dl1 = polarToCart(cx, cy, rInner, startAngle);
-    var dl2 = polarToCart(cx, cy, rOuter, startAngle);
-    svg.appendChild(svgEl('line', {
-      x1:dl1.x,y1:dl1.y,x2:dl2.x,y2:dl2.y,
-      stroke:'rgba(255,255,255,0.1)','stroke-width':'0.8'
-    }));
+    // Divider
+    svg.appendChild(svgEl('line', {x1:s1.x,y1:s1.y,x2:s2.x,y2:s2.y,stroke:tc.segStroke,'stroke-width':'0.8'}));
   }
 
-  // Inner circle
-  svg.appendChild(svgEl('circle', {cx:cx,cy:cy,r:rInner,fill:'#0a091a',stroke:'rgba(155,114,239,0.15)','stroke-width':'1'}));
-  svg.appendChild(svgEl('circle', {cx:cx,cy:cy,r:rCore,fill:'rgba(155,114,239,0.04)',stroke:'rgba(155,114,239,0.2)','stroke-width':'0.8'}));
+  // Rings
+  svg.appendChild(svgEl('circle', {cx:cx,cy:cy,r:rInner,fill:tc.innerFill,stroke:tc.innerStroke,'stroke-width':'1'}));
+  svg.appendChild(svgEl('circle', {cx:cx,cy:cy,r:rCore, fill:tc.coreFill, stroke:tc.coreStroke,'stroke-width':'0.8'}));
 
-  // House cusps (if available)
+  // House cusps
   if (natalData.houses) {
     natalData.houses.forEach(function(h) {
       var hAngle = h.absolute + rotOffset;
       var hp1 = polarToCart(cx, cy, rCore, hAngle);
       var hp2 = polarToCart(cx, cy, rInner, hAngle);
-      svg.appendChild(svgEl('line', {
-        x1:hp1.x,y1:hp1.y,x2:hp2.x,y2:hp2.y,
-        stroke:'rgba(201,168,67,0.2)','stroke-width':'0.8','stroke-dasharray':'3,3'
-      }));
-      // House number
-      var hn = polarToCart(cx, cy, rCore + 12, hAngle + 15);
-      var hnEl = svgEl('text', {x:hn.x,y:hn.y,'text-anchor':'middle','dominant-baseline':'central',fill:'rgba(201,168,67,0.5)','font-size':'7'});
+      svg.appendChild(svgEl('line', {x1:hp1.x,y1:hp1.y,x2:hp2.x,y2:hp2.y,stroke:tc.houseStroke,'stroke-width':'0.9','stroke-dasharray':'3,3'}));
+
+      // House number — centered in the middle of each house sector
+      var nextH = natalData.houses[(h.house % 12)];
+      var midHouseAngle = hAngle + 15;
+      var hn = polarToCart(cx, cy, rCore + 14, midHouseAngle);
+      var hnEl = svgEl('text', {x:hn.x,y:hn.y,'text-anchor':'middle','dominant-baseline':'central',fill:tc.houseNum,'font-size':'7.5','font-weight':'600'});
       hnEl.textContent = h.house;
       svg.appendChild(hnEl);
     });
   }
 
-  // Ascendant line
-  var ascLine1 = polarToCart(cx, cy, rCore, 180);
-  var ascLine2 = polarToCart(cx, cy, rInner - 5, 180);
-  svg.appendChild(svgEl('line', {x1:ascLine1.x,y1:ascLine1.y,x2:ascLine2.x,y2:ascLine2.y,stroke:'#f0c96a','stroke-width':'2'}));
-  var ascLabel = polarToCart(cx, cy, rInner - 18, 180);
-  var ascLabelEl = svgEl('text', {x:ascLabel.x,y:ascLabel.y,'text-anchor':'middle','dominant-baseline':'central',fill:'#f0c96a','font-size':'8','font-weight':'bold'});
-  ascLabelEl.textContent = 'ASC';
-  svg.appendChild(ascLabelEl);
+  // ASC line + label
+  var a1 = polarToCart(cx, cy, rCore, 180);
+  var a2 = polarToCart(cx, cy, rInner - 4, 180);
+  svg.appendChild(svgEl('line', {x1:a1.x,y1:a1.y,x2:a2.x,y2:a2.y,stroke:tc.ascStroke,'stroke-width':'2.5'}));
+  var aLbl = polarToCart(cx, cy, rInner - 16, 180);
+  var aEl = svgEl('text', {x:aLbl.x,y:aLbl.y,'text-anchor':'middle','dominant-baseline':'central',fill:tc.ascLabel,'font-size':'8','font-weight':'bold'});
+  aEl.textContent = 'ASC';
+  svg.appendChild(aEl);
 
-  // Plot planets
+  // Planets
   if (natalData.planets) {
     var planetPositions = [];
     Object.entries(natalData.planets).forEach(function(entry) {
       var name = entry[0], data = entry[1];
-      var absAngle = data.absolute + rotOffset;
-      planetPositions.push({name:name, angle:absAngle, data:data});
+      planetPositions.push({name:name, angle: data.absolute + rotOffset, data:data});
     });
 
-    // Spread overlapping planets
-    planetPositions.sort(function(a,b){return a.angle-b.angle;});
+    planetPositions.sort(function(a,b){return a.angle - b.angle;});
     for (var i = 1; i < planetPositions.length; i++) {
-      var diff = planetPositions[i].angle - planetPositions[i-1].angle;
-      if (diff < 8) planetPositions[i].angle = planetPositions[i-1].angle + 8;
+      if (planetPositions[i].angle - planetPositions[i-1].angle < 9)
+        planetPositions[i].angle = planetPositions[i-1].angle + 9;
     }
 
     planetPositions.forEach(function(p) {
-      var rPlanet = rCore + 35;
-      var pos = polarToCart(cx, cy, rPlanet, p.angle);
-      var color = PLANET_COLORS[p.name] || '#fff';
-      var sym = PLANET_SYMBOLS[p.name] || p.name[0];
+      var rPlanet = rCore + 36;
+      var pos    = polarToCart(cx, cy, rPlanet, p.angle);
+      var dotPos = polarToCart(cx, cy, rInner - 8, p.data.absolute + rotOffset);
+      var color  = PLANET_COLORS[p.name] || '#fff';
+      var sym    = PLANET_SYMBOLS[p.name] || p.name[0];
 
-      // Dot on outer edge showing true position
-      var truePosAngle = p.data.absolute + rotOffset;
-      var dotPos = polarToCart(cx, cy, rInner - 8, truePosAngle);
-      svg.appendChild(svgEl('circle', {cx:dotPos.x,cy:dotPos.y,r:'2.5',fill:color,opacity:'0.8'}));
+      svg.appendChild(svgEl('circle', {cx:dotPos.x,cy:dotPos.y,r:'2.8',fill:color,opacity:'0.9'}));
+      svg.appendChild(svgEl('line', {x1:dotPos.x,y1:dotPos.y,x2:pos.x,y2:pos.y,stroke:color,'stroke-width':'0.5',opacity:'0.25'}));
 
-      // Line from dot to symbol
-      svg.appendChild(svgEl('line', {
-        x1:dotPos.x,y1:dotPos.y,x2:pos.x,y2:pos.y,
-        stroke:color,'stroke-width':'0.5',opacity:'0.3'
-      }));
-
-      // Planet symbol
-      var symEl = svgEl('text', {
-        x:pos.x,y:pos.y,
-        'text-anchor':'middle','dominant-baseline':'central',
-        fill:color,'font-size':'14'
-      });
+      var symEl = svgEl('text', {x:pos.x,y:pos.y,'text-anchor':'middle','dominant-baseline':'central',fill:color,'font-size':'15'});
       symEl.textContent = sym + (p.data.retrograde ? '℞' : '');
       svg.appendChild(symEl);
     });
   }
 
-  // Center label
-  var centerEl = svgEl('text', {x:cx,y:cy,'text-anchor':'middle','dominant-baseline':'central',fill:'rgba(196,165,255,0.4)','font-size':'9','font-family':'serif','font-style':'italic'});
-  centerEl.textContent = '☽ ✦ ☉';
-  svg.appendChild(centerEl);
+  // Center glyph
+  var cEl = svgEl('text', {x:cx,y:cy,'text-anchor':'middle','dominant-baseline':'central',fill:tc.center,'font-size':'10','font-family':'serif','font-style':'italic'});
+  cEl.textContent = '☽ ✶ ☉';
+  svg.appendChild(cEl);
 }
 
 function populateTable(natalData) {
@@ -901,6 +917,8 @@ function applyTheme(theme) {
     btn.classList.toggle('active', isActive);
     btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
   });
+  // Redraw chart with new theme colors
+  if (window._lastNatalData) drawWheel(window._lastNatalData);
 }
 
 function toggleThemeMenu() {
