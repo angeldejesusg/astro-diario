@@ -88,33 +88,89 @@ function buildPrompt(nombre, enfoque, moon, today, natal, transits) {
       'Aspectos activos hoy (transito a natal):\n' + (transitAspectLines || '  (ninguno significativo)');
   }
 
+  // Secciones dinamicas por enfoque
+  var venusPos = (natal && natal.planets && natal.planets.Venus) ? natal.planets.Venus.degree.toFixed(1) + 'o ' + natal.planets.Venus.sign : 'su signo';
+  var martePos = (natal && natal.planets && natal.planets.Marte) ? natal.planets.Marte.degree.toFixed(1) + 'o ' + natal.planets.Marte.sign : 'su signo';
+
+  var enfoquesSecciones = {
+    'General': [
+      '### Personalidad central\nBasado en Sol en ' + sol + ' y Ascendente en ' + asc + '. Cual es el motor interno de ' + nombre + '? Como lo ve el mundo vs como se ve a si mismo?',
+      '### Conflictos internos\nBasado en los aspectos de tension de la carta. Que batallas internas tiene ' + nombre + '? Que le cuesta integrar?',
+      '### Patrones en relaciones\nBasado en Venus en ' + venusPos + ', Marte en ' + martePos + ' y Luna. Que busca ' + nombre + ' en los vinculos?',
+      '### Fortalezas\nBasado en aspectos armonicos. Donde tiene talento natural ' + nombre + '?',
+      '### Hoy\nEl transito mas relevante hoy y su impacto concreto para ' + nombre + '. Un consejo accionable.'
+    ],
+    'Trabajo': [
+      '### Vocacion y proposito\nBasado en Medio Cielo en ' + mc + ' y Casa 10. Cual es la vocacion autentica de ' + nombre + '?',
+      '### Estilo de trabajo\nBasado en Mercurio y Marte en ' + martePos + '. Como procesa, decide y ejecuta ' + nombre + '?',
+      '### Bloqueos profesionales\nBasado en aspectos de tension que afectan Casa 6 y Casa 10. Que patrones sabotean su carrera?',
+      '### Talento diferenciador\nBasado en aspectos armonicos. Que habilidad natural puede convertir en ventaja profesional ' + nombre + '?',
+      '### Hoy en el trabajo\nEl transito mas relevante hoy para decisiones o relaciones laborales. Un consejo concreto.'
+    ],
+    'Relaciones': [
+      '### Estilo afectivo\nBasado en Venus en ' + venusPos + ' y Luna en ' + luna + '. Como ama ' + nombre + '? Que necesita para sentirse seguro en pareja?',
+      '### Patrones repetitivos\nBasado en aspectos de tension de Venus y Luna. Que dinamica tiende a repetir ' + nombre + ' en sus relaciones?',
+      '### Lo que provoca sin darse cuenta\nBasado en Marte en ' + martePos + '. Que energia proyecta ' + nombre + ' que atrae ciertos perfiles?',
+      '### Su pareja ideal segun la carta\nBasado en Casa 7 y su regente. Que caracteristicas complementan la carta de ' + nombre + '?',
+      '### Hoy en amor\nEl transito mas relevante hoy para la vida amorosa. Un consejo concreto para conectar o sanar.'
+    ],
+    'Finanzas': [
+      '### Relacion con el dinero\nBasado en Casa 2 y su regente. Cual es la creencia profunda de ' + nombre + ' sobre el dinero?',
+      '### Capacidad de generar riqueza\nBasado en Jupiter y Casa 8. Donde tiene ' + nombre + ' mayor potencial de abundancia?',
+      '### Bloqueos financieros\nBasado en aspectos de tension de Casa 2 y Casa 8. Que patrones limitan la prosperidad de ' + nombre + '?',
+      '### Estrategia financiera segun la carta\nQue enfoque (ahorro, inversion, emprendimiento) se alinea con la energia de ' + nombre + '?',
+      '### Hoy en finanzas\nEl transito mas relevante hoy para decisiones economicas. Una accion concreta recomendada.'
+    ],
+    'Salud': [
+      '### Vitalidad natal\nBasado en Sol en ' + sol + ', Marte y Casa 1. Cual es el nivel de energia base de ' + nombre + '? Como recarga y como se agota?',
+      '### Cuerpo y emociones\nBasado en Luna en ' + luna + ' y Casa 6. Como afectan las emociones la salud de ' + nombre + '?',
+      '### Habitos que drenan\nBasado en aspectos de tension. Que patrones van contra la naturaleza de la carta de ' + nombre + '?',
+      '### Lo que le da energia real\nBasado en aspectos armonicos. Que actividades o ritmos vitalizan genuinamente a ' + nombre + '?',
+      '### Hoy en salud\nEl transito mas relevante hoy para el bienestar. Un habito o practica concreta para hoy.'
+    ],
+    'Creatividad': [
+      '### Naturaleza creativa\nBasado en Casa 5, Sol en ' + sol + ' y Venus. Como fluye la creatividad de ' + nombre + '?',
+      '### Bloqueos creativos\nBasado en aspectos de tension. Que miedos bloquean la expresion creativa de ' + nombre + '?',
+      '### Proyectos que le llenan\nQue tipo de proyectos (artisticos, tecnicos, humanos) se alinean con quien es ' + nombre + '?',
+      '### Superpoder creativo\nQue combinacion de talentos tiene ' + nombre + ' que pocos tienen?',
+      '### Hoy para crear\nEl transito mas relevante hoy para crear o avanzar. Un paso concreto.'
+    ],
+    'Redes': [
+      '### Voz autentica\nBasado en Mercurio, Sol en ' + sol + ' y Ascendente en ' + asc + '. Cual es el estilo comunicativo natural de ' + nombre + '?',
+      '### Contenido que le sale solo\nSobre que temas o formatos ' + nombre + ' tiene autoridad natural o pasion genuina?',
+      '### Bloqueos para publicar\nBasado en aspectos de tension de Mercurio y Casa 3. Que miedos le frenan a mostrarse publicamente?',
+      '### Estrategia segun la carta\nQue enfoque de contenido (educativo, emocional, provocador) se alinea con la energia de ' + nombre + '?',
+      '### Hoy para comunicar\nEl transito mas relevante hoy para publicar o conectar. Un tipo de mensaje concreto para hoy.'
+    ]
+  };
+
+  // Match enfoque to key
+  var enfoqueKey = 'General';
+  if (enfoque.indexOf('Trabajo') !== -1) enfoqueKey = 'Trabajo';
+  else if (enfoque.indexOf('Relacion') !== -1 || enfoque.indexOf('amor') !== -1) enfoqueKey = 'Relaciones';
+  else if (enfoque.indexOf('Finanz') !== -1 || enfoque.indexOf('dinero') !== -1) enfoqueKey = 'Finanzas';
+  else if (enfoque.indexOf('Salud') !== -1) enfoqueKey = 'Salud';
+  else if (enfoque.indexOf('Creativ') !== -1) enfoqueKey = 'Creatividad';
+  else if (enfoque.indexOf('Redes') !== -1 || enfoque.indexOf('comunicac') !== -1) enfoqueKey = 'Redes';
+
+  var secciones = enfoquesSecciones[enfoqueKey];
+
   return 'Eres un astrologo con formacion en psicologia analitica. Tu analisis es preciso, directo y nunca generico.\n' +
     'Consultante: ' + nombre + '\n' +
     'Fecha: ' + today + '\n' +
-    'Enfoque solicitado: ' + enfoque + '\n' +
+    'Enfoque: ' + enfoque + '\n' +
     natalBlock + transitBlock + '\n\n' +
     'REGLAS ESTRICTAS\n' +
     '- USA los datos exactos de la carta. Menciona signos, grados y casas reales.\n' +
     '- NO uses frases vacias: "los astros te invitan", "el universo conspira", "energia cosmica".\n' +
     '- Escribe como un psicologo que domina astrologia, lenguaje humano y directo.\n' +
-    '- Cada seccion debe tener al menos un dato especifico de la carta.\n' +
-    '- Responde en español.\n' +
-    '- Maximo 600 palabras en total. No cortes ninguna seccion a la mitad.\n\n' +
-    'Analiza la carta de ' + nombre + ' con estas secciones (usa ### para cada titulo):\n\n' +
-    '### Personalidad central\n' +
-    'Basado en Sol, Luna y Ascendente con sus casas. Cual es el motor interno de ' + nombre + '? Como lo ve el mundo vs como se ve a si mismo?\n\n' +
-    '### Conflictos internos\n' +
-    'Basado en los aspectos de tension. Que batallas internas tiene ' + nombre + '? Que le cuesta integrar?\n\n' +
-    '### Patrones en relaciones\n' +
-    'Basado en Venus, Marte, Luna y sus aspectos. Que busca en los vinculos? Que provoca sin darse cuenta?\n\n' +
-    '### Fortalezas\n' +
-    'Basado en aspectos armonicos y planetas bien ubicados. Donde tiene talento natural?\n\n' +
-    '### Riesgos\n' +
-    'Cuales son los patrones que pueden limitarle si no los trabaja?\n\n' +
-    '### Hoy - ' + enfoque + '\n' +
-    'El transito mas relevante hoy para ' + nombre + ' y su impacto concreto. Un solo consejo accionable para las proximas 24 horas.\n\n' +
+    '- Cada seccion debe incluir al menos un dato especifico de la carta.\n' +
+    '- Responde siempre en espanol.\n' +
+    '- Maximo 600 palabras. No cortes ninguna seccion a la mitad.\n\n' +
+    'Escribe el analisis de ' + nombre + ' con estas secciones exactas (usa ### para cada titulo):\n\n' +
+    secciones.join('\n\n') + '\n\n' +
     '### Frase del dia\n' +
-    'Una frase corta, directa y personalizada para ' + nombre + '. Sin metaforas cosmicas.';
+    'Una frase corta y directa para ' + nombre + ' enfocada en ' + enfoque + '. Sin metaforas cosmicas.';
 }
 
 export default async function handler(req, res) {
