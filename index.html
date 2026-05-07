@@ -88,6 +88,172 @@ footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;fo
 .carta-table td:nth-child(2) { color:var(--gold2); }
 .carta-table .retro { color:var(--purple2); font-size:0.75rem; margin-left:4px; }
 .casa-badge { display:inline-block; background:rgba(155,114,239,0.1); border:1px solid rgba(155,114,239,0.2); border-radius:4px; padding:1px 6px; font-size:0.75rem; color:var(--purple2); }
+
+/* ── Themes ───────────────────────────────────────────── */
+/* Dark (default) */
+[data-theme="dark"] {
+  --bg: #080710;
+  --surface: #0f0e1a;
+  --border: rgba(180,150,255,0.12);
+  --gold: #d4a843;
+  --gold2: #f0c96a;
+  --purple: #9b72ef;
+  --purple2: #c4a5ff;
+  --text: #e8e0f0;
+  --muted: #7a7090;
+  --glow-purple: rgba(155,114,239,0.18);
+  --panel-bg: rgba(15,14,26,0.7);
+  --suggestions-bg: #13122a;
+  --input-bg: rgba(255,255,255,0.04);
+  --result-head-bg: linear-gradient(135deg,rgba(155,114,239,0.1),rgba(212,168,67,0.06));
+  --result-body-bg: rgba(15,14,26,0.7);
+  --frase-bg: linear-gradient(135deg,rgba(155,114,239,0.08),rgba(212,168,67,0.05));
+}
+
+/* Light */
+[data-theme="light"] {
+  --bg: #f4f1ec;
+  --surface: #ffffff;
+  --border: rgba(120,90,180,0.15);
+  --gold: #9a6e1a;
+  --gold2: #7a5210;
+  --purple: #6b42c8;
+  --purple2: #5230a0;
+  --text: #1a1530;
+  --muted: #6b6080;
+  --glow-purple: rgba(107,66,200,0.12);
+  --panel-bg: rgba(255,255,255,0.92);
+  --suggestions-bg: #ffffff;
+  --input-bg: rgba(0,0,0,0.03);
+  --result-head-bg: linear-gradient(135deg,rgba(107,66,200,0.07),rgba(154,110,26,0.05));
+  --result-body-bg: rgba(255,255,255,0.95);
+  --frase-bg: linear-gradient(135deg,rgba(107,66,200,0.06),rgba(154,110,26,0.04));
+}
+
+/* Cosmic (mid) */
+[data-theme="cosmic"] {
+  --bg: #1c1424;
+  --surface: #261c32;
+  --border: rgba(200,160,255,0.15);
+  --gold: #e8b86d;
+  --gold2: #f5d08a;
+  --purple: #b48ef0;
+  --purple2: #d4b8ff;
+  --text: #f0e8ff;
+  --muted: #9a88b0;
+  --glow-purple: rgba(180,142,240,0.18);
+  --panel-bg: rgba(38,28,50,0.85);
+  --suggestions-bg: #1e1628;
+  --input-bg: rgba(255,255,255,0.06);
+  --result-head-bg: linear-gradient(135deg,rgba(180,142,240,0.12),rgba(232,184,109,0.07));
+  --result-body-bg: rgba(38,28,50,0.85);
+  --frase-bg: linear-gradient(135deg,rgba(180,142,240,0.1),rgba(232,184,109,0.06));
+}
+
+/* Apply panel bg */
+.panel,
+.result-body,
+.carta-panel {
+  background: var(--panel-bg) !important;
+}
+.result-head { background: var(--result-head-bg) !important; }
+.frase-dia { background: var(--frase-bg) !important; }
+#ciudadSuggestions { background: var(--suggestions-bg) !important; }
+.field input, .field select { background: var(--input-bg) !important; }
+
+/* Light mode body bg */
+[data-theme="light"] body { background: var(--bg); }
+[data-theme="light"] #cosmos { opacity: 0.15; }
+[data-theme="cosmic"] #cosmos { opacity: 0.6; }
+
+/* ── Theme toggle button ─────────────────────────────── */
+.theme-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.theme-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.theme-btn:hover, .theme-btn:focus-visible {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(155,114,239,0.35);
+  border-color: var(--purple);
+  outline: none;
+}
+
+.theme-btn:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 3px;
+}
+
+.theme-options {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.theme-options.open { display: flex; }
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 24px;
+  border: 1.5px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.92rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: border-color 0.2s, transform 0.15s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.theme-option:hover, .theme-option:focus-visible {
+  border-color: var(--purple);
+  transform: translateX(-4px);
+  outline: none;
+}
+
+.theme-option:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+
+.theme-option.active {
+  border-color: var(--gold);
+  color: var(--gold2);
+}
+
+.theme-option span { font-size: 1.1rem; }
+
 </style>
 </head>
 <body>
@@ -191,6 +357,25 @@ footer{text-align:center;margin-top:60px;color:var(--muted);font-size:0.82rem;fo
         </thead>
         <tbody id="cartaTableBody"></tbody>
       </table>
+    </div>
+  </div>
+
+  
+  <!-- Theme toggle -->
+  <div class="theme-toggle" role="group" aria-label="Selector de tema">
+    <button class="theme-btn" id="themeToggleBtn" aria-label="Cambiar tema" aria-expanded="false" aria-controls="themeOptions">
+      🎨
+    </button>
+    <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Temas disponibles">
+      <button class="theme-option" data-theme="dark" role="radio" aria-checked="true">
+        <span>🌑</span> Oscuro
+      </button>
+      <button class="theme-option" data-theme="cosmic" role="radio" aria-checked="false">
+        <span>🔮</span> Cósmico
+      </button>
+      <button class="theme-option" data-theme="light" role="radio" aria-checked="false">
+        <span>☀️</span> Claro
+      </button>
     </div>
   </div>
 
@@ -563,6 +748,66 @@ function showNatalChart(natalData) {
   populateTable(natalData);
   document.getElementById('cartaWrap').classList.add('on');
 }
+
+
+// ── Theme system ──────────────────────────────────────
+var THEMES = { dark: '🌑', cosmic: '🔮', light: '☀️' };
+var currentTheme = localStorage.getItem('astro_theme') || 'dark';
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  currentTheme = theme;
+  localStorage.setItem('astro_theme', theme);
+
+  // Update toggle button icon
+  document.getElementById('themeToggleBtn').textContent = THEMES[theme];
+
+  // Update active states and aria
+  document.querySelectorAll('.theme-option').forEach(function(btn) {
+    var isActive = btn.getAttribute('data-theme') === theme;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+  });
+}
+
+function toggleThemeMenu() {
+  var menu = document.getElementById('themeOptions');
+  var btn  = document.getElementById('themeToggleBtn');
+  var isOpen = menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  btn.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+}
+
+// Init
+applyTheme(currentTheme);
+
+document.getElementById('themeToggleBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  toggleThemeMenu();
+});
+
+document.querySelectorAll('.theme-option').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    applyTheme(this.getAttribute('data-theme'));
+    document.getElementById('themeOptions').classList.remove('open');
+    document.getElementById('themeToggleBtn').setAttribute('aria-expanded', 'false');
+  });
+});
+
+// Close menu clicking outside
+document.addEventListener('click', function() {
+  document.getElementById('themeOptions').classList.remove('open');
+  document.getElementById('themeToggleBtn').setAttribute('aria-expanded', 'false');
+});
+
+// Keyboard navigation
+document.getElementById('themeToggleBtn').addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.getElementById('themeOptions').classList.remove('open');
+    this.setAttribute('aria-expanded', 'false');
+  }
+});
 
 </script>
 </body>
