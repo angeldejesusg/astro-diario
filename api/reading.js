@@ -99,7 +99,7 @@ function buildPrompt(nombre, enfoque, moon, today, natal, transits) {
     '- Escribe como un psicologo que domina astrologia, lenguaje humano y directo.\n' +
     '- Cada seccion debe tener al menos un dato especifico de la carta.\n' +
     '- Responde en español.\n' +
-    '- Maximo 500 palabras en total.\n\n' +
+    '- Maximo 600 palabras en total. No cortes ninguna seccion a la mitad.\n\n' +
     'Analiza la carta de ' + nombre + ' con estas secciones (usa ### para cada titulo):\n\n' +
     '### Personalidad central\n' +
     'Basado en Sol, Luna y Ascendente con sus casas. Cual es el motor interno de ' + nombre + '? Como lo ve el mundo vs como se ve a si mismo?\n\n' +
@@ -162,7 +162,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'openrouter/auto',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000
+        max_tokens: 1500
       })
     });
 
