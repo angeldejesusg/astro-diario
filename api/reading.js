@@ -3,113 +3,143 @@ const RAILWAY_URL = 'https://web-production-93aa1.up.railway.app';
 function buildPrompt(nombre, enfoque, moon, today, natal, transits) {
   const hasNatal = natal && natal.planets;
 
-  // Base natal data
   let sol = 'desconocido', luna = 'desconocida', asc = 'desconocido', mc = 'desconocido';
   let planetLines = '', aspectLines = '', transitLines = '', transitAspectLines = '';
+  let tensosLines = '', armonicosLines = '';
 
   if (hasNatal) {
     const p = natal.planets;
-    sol  = p.Sol     ? `${p.Sol.degree.toFixed(1)}° ${p.Sol.sign}`         : 'desconocido';
-    luna = p.Luna    ? `${p.Luna.degree.toFixed(1)}° ${p.Luna.sign}`       : 'desconocida';
+
+    // Helper: find house for a planet
+    const getHouse = (absPos) => {
+      if (!natal.houses || natal.houses.length < 12) return '';
+      for (let i = 0; i < 12; i++) {
+        const next = (i + 1) % 12;
+        let c1 = natal.houses[i].absolute;
+        let c2 = natal.houses[next].absolute;
+        if (c2 < c1) c2 += 360;
+        let pos = absPos < c1 ? absPos + 360 : absPos;
+        if (pos >= c1 && pos < c2) return ` en Casa ${natal.houses[i].house}`;
+      }
+      return '';
+    };
+
+    sol  = p.Sol     ? `${p.Sol.degree.toFixed(1)}° ${p.Sol.sign}${getHouse(p.Sol.absolute)}`         : 'desconocido';
+    luna = p.Luna    ? `${p.Luna.degree.toFixed(1)}° ${p.Luna.sign}${getHouse(p.Luna.absolute)}`       : 'desconocida';
     asc  = natal.ascendant ? `${natal.ascendant.degree.toFixed(1)}° ${natal.ascendant.sign}` : 'desconocido';
     mc   = natal.mc        ? `${natal.mc.degree.toFixed(1)}° ${natal.mc.sign}`               : 'desconocido';
 
     planetLines = Object.entries(p).map(([name, d]) =>
-      `  • ${name}: ${d.degree.toFixed(1)}° ${d.sign}${d.retrograde ? ' (Retrógrado)' : ''}`
-    ).join('\n');
+      `  • ${name}: ${d.degree.toFixed(1)}° ${d.sign}${getHouse(d.absolute)}${d.retrograde ? ' (Rx)' : ''}`
+    ).join('
+');
 
     if (natal.aspects && natal.aspects.length > 0) {
-      aspectLines = natal.aspects
-        .filter(a => ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(a.planet1))
-        .slice(0, 10)
-        .map(a => `  • ${a.planet1} ${a.aspect} ${a.planet2} — orbe ${a.orb.toFixed(1)}° (${a.nature})`)
-        .join('\n');
+      const relevant = natal.aspects.filter(a =>
+        ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(a.planet1)
+      );
+      tensosLines = relevant
+        .filter(a => a.nature === 'tenso')
+        .slice(0, 5)
+        .map(a => `  • ${a.planet1} ${a.aspect} ${a.planet2} (orbe ${a.orb.toFixed(1)}°)`)
+        .join('
+');
+      armonicosLines = relevant
+        .filter(a => a.nature === 'armónico')
+        .slice(0, 5)
+        .map(a => `  • ${a.planet1} ${a.aspect} ${a.planet2} (orbe ${a.orb.toFixed(1)}°)`)
+        .join('
+');
     }
 
     if (transits && transits.planets) {
       transitLines = Object.entries(transits.planets)
         .filter(([n]) => ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(n))
         .map(([name, d]) => `  • ${name}: ${d.degree.toFixed(1)}° ${d.sign}${d.retrograde ? ' (Rx)' : ''}`)
-        .join('\n');
+        .join('
+');
     }
 
     if (transits && transits.transit_aspects && transits.transit_aspects.length > 0) {
       transitAspectLines = transits.transit_aspects
         .slice(0, 6)
         .map(a => `  • ${a.transit_planet} ${a.aspect} natal ${a.natal_planet} — orbe ${a.orb.toFixed(1)}° (${a.nature})`)
-        .join('\n');
+        .join('
+');
     }
   }
 
   const natalBlock = hasNatal ? `
 ═══════════════════════════════════
-CARTA NATAL (Swiss Ephemeris — datos precisos)
+CARTA NATAL — datos calculados con Swiss Ephemeris
 ═══════════════════════════════════
-Luminarias clave:
-  • Sol:        ${sol}
-  • Luna:       ${luna}
-  • Ascendente: ${asc}
+  • Sol:         ${sol}
+  • Luna:        ${luna}
+  • Ascendente:  ${asc}
   • Medio Cielo: ${mc}
 
-Todos los planetas:
+Todos los planetas con casa:
 ${planetLines}
 
-Aspectos natales principales:
-${aspectLines || '  (no disponibles)'}
+Aspectos de tensión (conflictos internos):
+${tensosLines || '  (ninguno significativo)'}
+
+Aspectos armónicos (fortalezas):
+${armonicosLines || '  (ninguno significativo)'}
 ` : '';
 
   const transitBlock = transitLines ? `
 ═══════════════════════════════════
-TRÁNSITOS DE HOY — ${today}
+TRÁNSITOS HOY — ${today} — ${moon.n} ${moon.e}
 ═══════════════════════════════════
 Posiciones actuales:
 ${transitLines}
 
-Aspectos tránsito → natal activos hoy:
+Aspectos activos hoy (tránsito → natal):
 ${transitAspectLines || '  (ninguno significativo)'}
 ` : '';
 
-  return `Actúa como un astrólogo profesional con enfoque psicológico y humanista.
-Nombre del consultante: ${nombre}
-Hoy: ${today}
-Fase lunar: ${moon.n} ${moon.e}
+  return `Eres un astrólogo con formación en psicología analítica. Tu análisis es preciso, directo y nunca genérico.
+Consultante: ${nombre}
+Fecha: ${today}
 Enfoque solicitado: ${enfoque}
 ${natalBlock}${transitBlock}
 ═══════════════════════════════════
-INSTRUCCIONES ESTRICTAS
+REGLAS ESTRICTAS
 ═══════════════════════════════════
-1. USA los datos precisos de la carta natal. No los ignores ni los estimes.
-2. NO escribas frases genéricas como "los astros te invitan" o "el universo te dice".
-3. SÉ específico: menciona los signos, grados y aspectos reales al interpretar.
-4. Lenguaje humano, directo, como un psicólogo que conoce astrología.
-5. Máximo 450 palabras en total.
+- USA los datos exactos de la carta. Menciona signos, grados y casas reales.
+- NO uses frases vacías: "los astros te invitan", "el universo conspira", "energía cósmica".
+- Escribe como un psicólogo que domina astrología — lenguaje humano y directo.
+- Cada sección debe tener al menos un dato específico de la carta.
+- Máximo 500 palabras en total.
 
-Estructura tu respuesta con estas secciones (usa ### para cada título):
+Analiza la carta de ${nombre} con estas secciones (usa ### para cada título):
 
-### Perfil natal
-Describe la personalidad de ${nombre} basándote en Sol, Luna y Ascendente reales.
-Menciona 2-3 rasgos concretos con ejemplos de cómo se manifiestan en la vida.
+### Personalidad central
+Basado en Sol, Luna y Ascendente con sus casas.
+¿Cuál es el motor interno de ${nombre}? ¿Cómo lo ve el mundo vs cómo se ve a sí mismo?
 
-### Emociones y estrés
-Cómo reacciona ${nombre} emocionalmente bajo presión. Basado en Luna y aspectos.
-Sé directo — qué patrones tiene, qué le cuesta soltar.
+### Conflictos internos
+Basado en los aspectos de tensión.
+¿Qué batallas internas tiene ${nombre}? ¿Qué le cuesta integrar?
 
-### Relaciones
-Patrones reales en vínculos. Venus, Marte y aspectos relevantes.
-Qué busca, qué provoca sin darse cuenta.
+### Patrones en relaciones
+Basado en Venus, Marte, Luna y sus aspectos.
+¿Qué busca en los vínculos? ¿Qué provoca sin darse cuenta?
+
+### Fortalezas
+Basado en los aspectos armónicos y planetas bien ubicados.
+¿Dónde tiene talento natural? ¿Qué le sale fácil?
+
+### Riesgos
+¿Cuáles son los patrones que pueden limitarle si no los trabaja?
 
 ### Hoy — ${enfoque}
-Qué tránsito es el más significativo hoy para ${nombre}.
-Un consejo accionable concreto para las próximas 24 horas.
-
-### Lo que fluye hoy
-2-3 cosas específicas que le favorecen (basadas en los tránsitos).
-
-### Lo que requiere cuidado
-2-3 cosas específicas a tener en cuenta (basadas en los tránsitos).
+El tránsito más relevante hoy para ${nombre} y su impacto concreto.
+Un solo consejo accionable para las próximas 24 horas.
 
 ### Frase del día
-Una frase corta, directa y personalizada para ${nombre}. Sin metáforas cósmicas.`;
+Una frase corta, directa y personalizada. Sin metáforas cósmicas.`;
 }
 
 export default async function handler(req, res) {
