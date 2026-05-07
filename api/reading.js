@@ -1,4 +1,4 @@
-const RAILWAY_URL = ‘https://web-production-93aa1.up.railway.app’;
+const RAILWAY_URL = 'https://web-production-93aa1.up.railway.app';
 
 export default async function handler(req, res) {
 if (req.method !== ‘POST’) {
