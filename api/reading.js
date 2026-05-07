@@ -1,145 +1,120 @@
 const RAILWAY_URL = 'https://web-production-93aa1.up.railway.app';
 
+function getHouse(absPos, houses) {
+  if (!houses || houses.length < 12) return '';
+  for (let i = 0; i < 12; i++) {
+    const next = (i + 1) % 12;
+    let c1 = houses[i].absolute;
+    let c2 = houses[next].absolute;
+    if (c2 < c1) c2 += 360;
+    let pos = absPos < c1 ? absPos + 360 : absPos;
+    if (pos >= c1 && pos < c2) return ' en Casa ' + houses[i].house;
+  }
+  return '';
+}
+
 function buildPrompt(nombre, enfoque, moon, today, natal, transits) {
   const hasNatal = natal && natal.planets;
+  const p = hasNatal ? natal.planets : {};
+  const houses = hasNatal ? natal.houses : [];
 
-  let sol = 'desconocido', luna = 'desconocida', asc = 'desconocido', mc = 'desconocido';
-  let planetLines = '', aspectLines = '', transitLines = '', transitAspectLines = '';
-  let tensosLines = '', armonicosLines = '';
+  const fmt = (planet) => {
+    if (!p[planet]) return 'desconocido';
+    return p[planet].degree.toFixed(1) + 'o ' + p[planet].sign + getHouse(p[planet].absolute, houses) + (p[planet].retrograde ? ' (Rx)' : '');
+  };
 
+  const sol  = fmt('Sol');
+  const luna = fmt('Luna');
+  const asc  = natal && natal.ascendant ? natal.ascendant.degree.toFixed(1) + 'o ' + natal.ascendant.sign : 'desconocido';
+  const mc   = natal && natal.mc ? natal.mc.degree.toFixed(1) + 'o ' + natal.mc.sign : 'desconocido';
+
+  let planetLines = '';
   if (hasNatal) {
-    const p = natal.planets;
-
-    // Helper: find house for a planet
-    const getHouse = (absPos) => {
-      if (!natal.houses || natal.houses.length < 12) return '';
-      for (let i = 0; i < 12; i++) {
-        const next = (i + 1) % 12;
-        let c1 = natal.houses[i].absolute;
-        let c2 = natal.houses[next].absolute;
-        if (c2 < c1) c2 += 360;
-        let pos = absPos < c1 ? absPos + 360 : absPos;
-        if (pos >= c1 && pos < c2) return ` en Casa ${natal.houses[i].house}`;
-      }
-      return '';
-    };
-
-    sol  = p.Sol     ? `${p.Sol.degree.toFixed(1)}° ${p.Sol.sign}${getHouse(p.Sol.absolute)}`         : 'desconocido';
-    luna = p.Luna    ? `${p.Luna.degree.toFixed(1)}° ${p.Luna.sign}${getHouse(p.Luna.absolute)}`       : 'desconocida';
-    asc  = natal.ascendant ? `${natal.ascendant.degree.toFixed(1)}° ${natal.ascendant.sign}` : 'desconocido';
-    mc   = natal.mc        ? `${natal.mc.degree.toFixed(1)}° ${natal.mc.sign}`               : 'desconocido';
-
     planetLines = Object.entries(p).map(([name, d]) =>
-      `  • ${name}: ${d.degree.toFixed(1)}° ${d.sign}${getHouse(d.absolute)}${d.retrograde ? ' (Rx)' : ''}`
-    ).join('
-');
-
-    if (natal.aspects && natal.aspects.length > 0) {
-      const relevant = natal.aspects.filter(a =>
-        ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(a.planet1)
-      );
-      tensosLines = relevant
-        .filter(a => a.nature === 'tenso')
-        .slice(0, 5)
-        .map(a => `  • ${a.planet1} ${a.aspect} ${a.planet2} (orbe ${a.orb.toFixed(1)}°)`)
-        .join('
-');
-      armonicosLines = relevant
-        .filter(a => a.nature === 'armónico')
-        .slice(0, 5)
-        .map(a => `  • ${a.planet1} ${a.aspect} ${a.planet2} (orbe ${a.orb.toFixed(1)}°)`)
-        .join('
-');
-    }
-
-    if (transits && transits.planets) {
-      transitLines = Object.entries(transits.planets)
-        .filter(([n]) => ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(n))
-        .map(([name, d]) => `  • ${name}: ${d.degree.toFixed(1)}° ${d.sign}${d.retrograde ? ' (Rx)' : ''}`)
-        .join('
-');
-    }
-
-    if (transits && transits.transit_aspects && transits.transit_aspects.length > 0) {
-      transitAspectLines = transits.transit_aspects
-        .slice(0, 6)
-        .map(a => `  • ${a.transit_planet} ${a.aspect} natal ${a.natal_planet} — orbe ${a.orb.toFixed(1)}° (${a.nature})`)
-        .join('
-');
-    }
+      '  - ' + name + ': ' + d.degree.toFixed(1) + 'o ' + d.sign + getHouse(d.absolute, houses) + (d.retrograde ? ' (Rx)' : '')
+    ).join('\n');
   }
 
-  const natalBlock = hasNatal ? `
-═══════════════════════════════════
-CARTA NATAL — datos calculados con Swiss Ephemeris
-═══════════════════════════════════
-  • Sol:         ${sol}
-  • Luna:        ${luna}
-  • Ascendente:  ${asc}
-  • Medio Cielo: ${mc}
+  let tensosLines = '';
+  let armonicosLines = '';
+  if (hasNatal && natal.aspects && natal.aspects.length > 0) {
+    const relevant = natal.aspects.filter(a =>
+      ['Sol','Luna','Mercurio','Venus','Marte','Jupiter','Saturno'].includes(a.planet1) ||
+      ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(a.planet1)
+    );
+    tensosLines = relevant
+      .filter(a => a.nature === 'tenso')
+      .slice(0, 5)
+      .map(a => '  - ' + a.planet1 + ' ' + a.aspect + ' ' + a.planet2 + ' (orbe ' + a.orb.toFixed(1) + 'o)')
+      .join('\n') || '  (ninguno significativo)';
+    armonicosLines = relevant
+      .filter(a => a.nature === 'armonico' || a.nature === 'armónico')
+      .slice(0, 5)
+      .map(a => '  - ' + a.planet1 + ' ' + a.aspect + ' ' + a.planet2 + ' (orbe ' + a.orb.toFixed(1) + 'o)')
+      .join('\n') || '  (ninguno significativo)';
+  }
 
-Todos los planetas con casa:
-${planetLines}
+  let transitLines = '';
+  let transitAspectLines = '';
+  if (transits && transits.planets) {
+    transitLines = Object.entries(transits.planets)
+      .filter(([n]) => ['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(n))
+      .map(([name, d]) => '  - ' + name + ': ' + d.degree.toFixed(1) + 'o ' + d.sign + (d.retrograde ? ' (Rx)' : ''))
+      .join('\n');
+  }
+  if (transits && transits.transit_aspects && transits.transit_aspects.length > 0) {
+    transitAspectLines = transits.transit_aspects
+      .slice(0, 6)
+      .map(a => '  - ' + a.transit_planet + ' ' + a.aspect + ' natal ' + a.natal_planet + ' (orbe ' + a.orb.toFixed(1) + 'o, ' + a.nature + ')')
+      .join('\n') || '  (ninguno significativo)';
+  }
 
-Aspectos de tensión (conflictos internos):
-${tensosLines || '  (ninguno significativo)'}
+  let natalBlock = '';
+  if (hasNatal) {
+    natalBlock = '\n\nCARTA NATAL (Swiss Ephemeris - datos precisos)\n' +
+      '  - Sol:         ' + sol + '\n' +
+      '  - Luna:        ' + luna + '\n' +
+      '  - Ascendente:  ' + asc + '\n' +
+      '  - Medio Cielo: ' + mc + '\n\n' +
+      'Todos los planetas con casa:\n' + planetLines + '\n\n' +
+      'Aspectos de tension (conflictos internos):\n' + tensosLines + '\n\n' +
+      'Aspectos armonicos (fortalezas):\n' + armonicosLines;
+  }
 
-Aspectos armónicos (fortalezas):
-${armonicosLines || '  (ninguno significativo)'}
-` : '';
+  let transitBlock = '';
+  if (transitLines) {
+    transitBlock = '\n\nTRANSITOS HOY - ' + today + ' - ' + moon.n + ' ' + moon.e + '\n' +
+      'Posiciones actuales:\n' + transitLines + '\n\n' +
+      'Aspectos activos hoy (transito a natal):\n' + (transitAspectLines || '  (ninguno significativo)');
+  }
 
-  const transitBlock = transitLines ? `
-═══════════════════════════════════
-TRÁNSITOS HOY — ${today} — ${moon.n} ${moon.e}
-═══════════════════════════════════
-Posiciones actuales:
-${transitLines}
-
-Aspectos activos hoy (tránsito → natal):
-${transitAspectLines || '  (ninguno significativo)'}
-` : '';
-
-  return `Eres un astrólogo con formación en psicología analítica. Tu análisis es preciso, directo y nunca genérico.
-Consultante: ${nombre}
-Fecha: ${today}
-Enfoque solicitado: ${enfoque}
-${natalBlock}${transitBlock}
-═══════════════════════════════════
-REGLAS ESTRICTAS
-═══════════════════════════════════
-- USA los datos exactos de la carta. Menciona signos, grados y casas reales.
-- NO uses frases vacías: "los astros te invitan", "el universo conspira", "energía cósmica".
-- Escribe como un psicólogo que domina astrología — lenguaje humano y directo.
-- Cada sección debe tener al menos un dato específico de la carta.
-- Máximo 500 palabras en total.
-
-Analiza la carta de ${nombre} con estas secciones (usa ### para cada título):
-
-### Personalidad central
-Basado en Sol, Luna y Ascendente con sus casas.
-¿Cuál es el motor interno de ${nombre}? ¿Cómo lo ve el mundo vs cómo se ve a sí mismo?
-
-### Conflictos internos
-Basado en los aspectos de tensión.
-¿Qué batallas internas tiene ${nombre}? ¿Qué le cuesta integrar?
-
-### Patrones en relaciones
-Basado en Venus, Marte, Luna y sus aspectos.
-¿Qué busca en los vínculos? ¿Qué provoca sin darse cuenta?
-
-### Fortalezas
-Basado en los aspectos armónicos y planetas bien ubicados.
-¿Dónde tiene talento natural? ¿Qué le sale fácil?
-
-### Riesgos
-¿Cuáles son los patrones que pueden limitarle si no los trabaja?
-
-### Hoy — ${enfoque}
-El tránsito más relevante hoy para ${nombre} y su impacto concreto.
-Un solo consejo accionable para las próximas 24 horas.
-
-### Frase del día
-Una frase corta, directa y personalizada. Sin metáforas cósmicas.`;
+  return 'Eres un astrologo con formacion en psicologia analitica. Tu analisis es preciso, directo y nunca generico.\n' +
+    'Consultante: ' + nombre + '\n' +
+    'Fecha: ' + today + '\n' +
+    'Enfoque solicitado: ' + enfoque + '\n' +
+    natalBlock + transitBlock + '\n\n' +
+    'REGLAS ESTRICTAS\n' +
+    '- USA los datos exactos de la carta. Menciona signos, grados y casas reales.\n' +
+    '- NO uses frases vacias: "los astros te invitan", "el universo conspira", "energia cosmica".\n' +
+    '- Escribe como un psicologo que domina astrologia, lenguaje humano y directo.\n' +
+    '- Cada seccion debe tener al menos un dato especifico de la carta.\n' +
+    '- Responde en español.\n' +
+    '- Maximo 500 palabras en total.\n\n' +
+    'Analiza la carta de ' + nombre + ' con estas secciones (usa ### para cada titulo):\n\n' +
+    '### Personalidad central\n' +
+    'Basado en Sol, Luna y Ascendente con sus casas. Cual es el motor interno de ' + nombre + '? Como lo ve el mundo vs como se ve a si mismo?\n\n' +
+    '### Conflictos internos\n' +
+    'Basado en los aspectos de tension. Que batallas internas tiene ' + nombre + '? Que le cuesta integrar?\n\n' +
+    '### Patrones en relaciones\n' +
+    'Basado en Venus, Marte, Luna y sus aspectos. Que busca en los vinculos? Que provoca sin darse cuenta?\n\n' +
+    '### Fortalezas\n' +
+    'Basado en aspectos armonicos y planetas bien ubicados. Donde tiene talento natural?\n\n' +
+    '### Riesgos\n' +
+    'Cuales son los patrones que pueden limitarle si no los trabaja?\n\n' +
+    '### Hoy - ' + enfoque + '\n' +
+    'El transito mas relevante hoy para ' + nombre + ' y su impacto concreto. Un solo consejo accionable para las proximas 24 horas.\n\n' +
+    '### Frase del dia\n' +
+    'Una frase corta, directa y personalizada para ' + nombre + '. Sin metaforas cosmicas.';
 }
 
 export default async function handler(req, res) {
@@ -154,30 +129,21 @@ export default async function handler(req, res) {
     let natal = null;
     let transits = null;
 
-    // Get precise natal chart from Railway
     if (birthData && birthData.lat && birthData.lon) {
       try {
-        const [natalRes, transitsRes] = await Promise.all([
-          fetch(`${RAILWAY_URL}/natal`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(birthData)
-          }),
-          fetch(`${RAILWAY_URL}/transits`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ natal: null })
-          })
-        ]);
+        const natalRes = await fetch(RAILWAY_URL + '/natal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(birthData)
+        });
         natal = await natalRes.json();
 
-        // Get transits with natal data
-        const transitsRes2 = await fetch(`${RAILWAY_URL}/transits`, {
+        const transitsRes = await fetch(RAILWAY_URL + '/transits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ natal: { planets: natal.planets } })
         });
-        transits = await transitsRes2.json();
+        transits = await transitsRes.json();
       } catch (e) {
         console.error('Railway error:', e.message);
       }
