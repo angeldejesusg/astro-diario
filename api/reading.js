@@ -326,7 +326,7 @@ export default async function handler(req, res) {
         'X-Title': 'Astro Diario'
       },
       body: JSON.stringify({
-        model: 'openrouter/auto',
+        model: 'deepseek/deepseek-chat-v3-0324:free',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1500
       })
